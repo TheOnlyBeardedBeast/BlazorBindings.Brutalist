@@ -6,23 +6,25 @@
 <YogaWindow Direction="Yoga.YGFlexDirection.YGFlexDirectionRow" Background="@CurrentTheme.Background.ToHexColor()"
             AlignItems="stretch" Position="relative">
     <Drawer />
-    <YogaView Padding="24" Direction="Yoga.YGFlexDirection.YGFlexDirectionColumn" Gap="16" Grow="1">
-        <YogaView Shrink="0">
-            <PhosphorIcon Icon="@PhosphorIcons.Acorn" Size="48" Color="@CurrentTheme.OnBackground.ToHexColor()" />
-            <YogaText Shrink="0" FontSize="28" Color="@CurrentTheme.OnBackground.ToHexColor()" TextAlign="left">
-                Button
-            </YogaText>
-            <YogaText Shrink="0" FontSize="14" Color="@CurrentTheme.OnSurfaceVariant.ToHexColor()" TextAlign="left">
-                A pressable element that triggers an action. Supports sizes, variants, and tones.
-            </YogaText>
-        </YogaView>
-        <YogaView Direction="Yoga.YGFlexDirection.YGFlexDirectionRow" Gap="8" Wrap="wrap" AlignItems="center"
-                  Shrink="0">
-            <Button Label="Dark Theme" OnClick="UseDarkTheme" Tone="Secondary" />
-            <Button Label="Light Theme" OnClick="UseLightTheme" Tone="Secondary" Variant="Outlined" />
-            <Button Label="Open Modal" OnClick="OpenModal" />
-        </YogaView>
-        <YogaScrollableView Padding="0 8 0 0">
+    <YogaScrollableView Padding="0 8 0 0" Grow="1">
+
+        <YogaView Padding="24" Direction="Yoga.YGFlexDirection.YGFlexDirectionColumn" Gap="16" Grow="1">
+            <YogaView Shrink="0">
+                <PhosphorIcon Icon="@PhosphorIcons.Acorn" Size="48" Color="@CurrentTheme.OnBackground.ToHexColor()" />
+                <YogaText Shrink="0" FontSize="28" Color="@CurrentTheme.OnBackground.ToHexColor()" TextAlign="left">
+                    Button
+                </YogaText>
+                <YogaText Shrink="0" FontSize="14" Color="@CurrentTheme.OnSurfaceVariant.ToHexColor()" TextAlign="left">
+                    A pressable element that triggers an action. Supports sizes, variants, and tones.
+                </YogaText>
+            </YogaView>
+            <YogaView Direction="Yoga.YGFlexDirection.YGFlexDirectionRow" Gap="8" Wrap="wrap" AlignItems="center"
+                      Shrink="0">
+                <Button Label="Dark Theme" OnClick="UseDarkTheme" Tone="Secondary" />
+                <Button Label="Light Theme" OnClick="UseLightTheme" Tone="Secondary" Variant="Outlined" />
+                <Button Label="Open Modal" OnClick="OpenModal" />
+            </YogaView>
+
             <YogaView Direction="Yoga.YGFlexDirection.YGFlexDirectionColumn" Gap="16" AlignItems="stretch">
                 <BrutalistCard BorderRadius="12" Padding="16" Gap="12">
                     <YogaText FontSize="18" Color="@CurrentTheme.OnBackground.ToHexColor()" TextAlign="left">
@@ -102,6 +104,20 @@
                 </BrutalistCard>
                 <BrutalistCard BorderRadius="12" Padding="16" Gap="12">
                     <YogaText FontSize="18" Color="@CurrentTheme.OnBackground.ToHexColor()" TextAlign="left">
+                        Disabled
+                    </YogaText>
+                    <YogaText FontSize="12" Color="@CurrentTheme.OnSurfaceVariant.ToHexColor()" TextAlign="left">
+                        Disabled buttons use SurfaceDim background and OnSurface text color across all variants.
+                    </YogaText>
+                    <YogaView Direction="Yoga.YGFlexDirection.YGFlexDirectionRow" Gap="8" Wrap="wrap"
+                              AlignItems="center">
+                        <Button Variant="Filled" Label="Disabled Filled" Disabled="true" OnClick="Increment" />
+                        <Button Variant="Outlined" Label="Disabled Outlined" Disabled="true" OnClick="Increment" />
+                        <Button Variant="Text" Label="Disabled Text" Disabled="true" OnClick="Increment" />
+                    </YogaView>
+                </BrutalistCard>
+                <BrutalistCard BorderRadius="12" Padding="16" Gap="12">
+                    <YogaText FontSize="18" Color="@CurrentTheme.OnBackground.ToHexColor()" TextAlign="left">
                         RichText
                     </YogaText>
                     <YogaText FontSize="12" Color="@CurrentTheme.OnSurfaceVariant.ToHexColor()" TextAlign="left">
@@ -139,8 +155,9 @@
                 </BrutalistCard> *@
                 <ComboBox />
             </YogaView>
-        </YogaScrollableView>
-    </YogaView>
+
+        </YogaView>
+    </YogaScrollableView>
 
     @* Modal *@
     @if (IsModalOpen)
