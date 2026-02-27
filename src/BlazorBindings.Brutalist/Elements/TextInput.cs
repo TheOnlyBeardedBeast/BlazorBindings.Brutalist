@@ -96,6 +96,12 @@ public class YogaTextInput : YogaView, IDisposable
             Math.Max(0, bounds.Width - paddingLeft - paddingRight),
             Math.Max(0, bounds.Height - paddingTop - paddingBottom));
 
+        RenderText(canvas, textBounds);
+        RenderCaret(canvas, textBounds);
+    }
+
+    private void RenderText(SKCanvas canvas, SKRect textBounds)
+    {
         var isEmpty = string.IsNullOrEmpty(_currentValue);
         var textToDraw = isEmpty ? (Placeholder ?? string.Empty) : _currentValue;
 
@@ -117,11 +123,22 @@ public class YogaTextInput : YogaView, IDisposable
         var baseline = textBounds.Top + ((textBounds.Height - lineHeight) / 2f) - font.Metrics.Ascent;
 
         canvas.DrawText(textToDraw, textBounds.Left, baseline, SKTextAlign.Left, font, paint);
+    }
 
+    private void RenderCaret(SKCanvas canvas, SKRect textBounds)
+    {
         if (!_isFocused || !_caretVisible)
         {
             return;
         }
+
+        using var font = new SKFont
+        {
+            Size = FontSize ?? 16f,
+        };
+
+        var lineHeight = font.Metrics.Descent - font.Metrics.Ascent;
+        var baseline = textBounds.Top + ((textBounds.Height - lineHeight) / 2f) - font.Metrics.Ascent;
 
         var _caretText = _currentValue.Substring(0, _currentValue.Length - _caretOffset);
         var textWidth = font.MeasureText(_caretText);
