@@ -1,6 +1,5 @@
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using SkiaSharp;
-using System.Globalization;
 
 namespace BlazorBindings.Brutalist.Elements;
 
