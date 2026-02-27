@@ -755,7 +755,7 @@ public unsafe class Element : NativeControlComponentBase
                 continue;
             }
 
-            if (childElement.TryResolveCursorCore(point, out isPointer))
+            if (childElement.TryResolveCursor(point, out isPointer))
             {
                 return true;
             }
