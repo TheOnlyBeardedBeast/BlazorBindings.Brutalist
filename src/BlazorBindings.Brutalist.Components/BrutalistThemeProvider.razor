@@ -1,0 +1,20 @@
+@using MaterialColorUtilities.Palettes
+@using MaterialColorUtilities.Schemes
+
+<CascadingValue Value="Scheme" IsFixed="false">
+    @ChildContent
+</CascadingValue>
+
+@code {
+    [Parameter]
+    public string? SeedColor { get; set; }
+
+    [Parameter]
+    public bool Dark { get; set; } = false;
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+    private uint Color => uint.TryParse(SeedColor?.TrimStart('#'), System.Globalization.NumberStyles.HexNumber, null, out var result) ? result : 0xff0000;
+    private CorePalette CorePalette => CorePalette.Of(Color);
+    private Scheme<uint> Scheme => Dark ? new DarkSchemeMapper().Map(CorePalette) : new LightSchemeMapper().Map(CorePalette);
+}

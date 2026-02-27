@@ -1,0 +1,25 @@
+@using BlazorBindings.Brutalist.Elements
+
+<YogaText 
+    Text="@(((char)(int)Icon).ToString())"
+    FontFamily="@GetFontPath()"
+    FontSize="@Size"
+    Color="@Color"
+    CenterText="true" />
+
+@code {
+    [Parameter]
+    public PhosphorIcons Icon { get; set; }
+
+    [Parameter]
+    public float Size { get; set; } = 24;
+
+    [Parameter]
+    public string? Color { get; set; } = "#000000";
+
+    private string GetFontPath()
+    {
+        var basePath = AppDomain.CurrentDomain.BaseDirectory;
+        return Path.Combine(basePath, "Phosphor.ttf");
+    }
+}

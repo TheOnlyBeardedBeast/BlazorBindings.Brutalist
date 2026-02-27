@@ -62,6 +62,13 @@ public abstract class NativeControlComponentBase : IComponent
         RenderAdditionalElementContent(builder, ref sequence);
     }
 
+    protected virtual void OnInitialized()
+    {
+    }
+
+    protected virtual Task OnInitializedAsync()
+        => Task.CompletedTask;
+
     protected virtual void RenderAdditionalElementContent(RenderTreeBuilder builder, ref int sequence)
     {
     }

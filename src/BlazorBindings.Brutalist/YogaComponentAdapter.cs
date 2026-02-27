@@ -1,20 +1,18 @@
-﻿// Copyright (c) Microsoft Corporation.
-// Licensed under the MIT license.
-
+using BlazorBindings.Brutalist.Elements;
 using Microsoft.AspNetCore.Components.RenderTree;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 
-namespace BlazorBindings.Core;
+namespace BlazorBindings.Brutalist;
 
 /// <summary>
 /// Represents a "shadow" item that Blazor uses to map changes into the live native UI tree.
 /// </summary>
 [DebuggerDisplay("{GetDebugName}")]
-internal sealed class NativeComponentAdapter(
-    NativeComponentRenderer renderer,
-    NativeComponentAdapter closestPhysicalParent,
-    IElementHandler knownTargetElement = null)
+internal sealed class YogaComponentAdapter(
+    YogaSkiaRenderer renderer,
+    YogaComponentAdapter closestPhysicalParent,
+    IComponent knownTargetElement = null)
     : IDisposable
 {
     /// <summary>
@@ -28,7 +26,7 @@ internal sealed class NativeComponentAdapter(
         string text = null;
         try
         {
-            text = (_targetElement?.TargetElement as dynamic)?.Text;
+            text = (_targetElement as dynamic)?.Text;
         }
         catch { }
 
@@ -37,14 +35,14 @@ internal sealed class NativeComponentAdapter(
 
     public int DeepLevel { get; init; }
 
-    public NativeComponentAdapter Parent { get; private set; }
-    public List<NativeComponentAdapter> Children { get; } = [];
+    public YogaComponentAdapter Parent { get; private set; }
+    public List<YogaComponentAdapter> Children { get; } = [];
 
-    public IElementHandler _targetElement = knownTargetElement;
+    public IComponent _targetElement = knownTargetElement;
 
-    private NativeComponentAdapter PhysicalTarget => _targetElement != null ? this : closestPhysicalParent;
+    private YogaComponentAdapter PhysicalTarget => _targetElement is Element ? this : closestPhysicalParent;
 
-    public NativeComponentRenderer Renderer { get; } = renderer ?? throw new ArgumentNullException(nameof(renderer));
+    public YogaSkiaRenderer Renderer { get; } = renderer ?? throw new ArgumentNullException(nameof(renderer));
 
     private List<PendingEdit> _pendingEdits;
 
@@ -52,15 +50,13 @@ internal sealed class NativeComponentAdapter(
         int componentId,
         ArrayBuilderSegment<RenderTreeEdit> edits,
         RenderBatch batch,
-        HashSet<NativeComponentAdapter> adaptersWithPendingEdits)
+        HashSet<YogaComponentAdapter> adaptersWithPendingEdits)
     {
-        Console.WriteLine(nameof(ApplyEdits));
         var referenceFrames = batch.ReferenceFrames.Array;
 
-        Console.WriteLine("EDIT");
-        Console.WriteLine(edits.Count);
         foreach (var edit in edits)
         {
+
             Console.WriteLine(edit.Type);
             switch (edit.Type)
             {
@@ -109,7 +105,6 @@ internal sealed class NativeComponentAdapter(
     // Therefore we store all add/remove actions, and apply them (rearranged) after other edits.
     public void ApplyPendingEdits()
     {
-        Console.WriteLine(nameof(ApplyPendingEdits));
         if (_pendingEdits == null)
             return;
 
@@ -125,24 +120,34 @@ internal sealed class NativeComponentAdapter(
                 && edit is { Type: EditType.Remove, Element._targetElement: not INonPhysicalChild }
                 && nextEdit is { Type: EditType.Add, Element._targetElement: not INonPhysicalChild })
             {
-                Renderer.ElementManager.ReplaceChildElement(_targetElement, edit.Element._targetElement, nextEdit.Element._targetElement, edit.Index);
+                Renderer._elementManager.ReplaceChildElement(_targetElement, edit.Element._targetElement, nextEdit.Element._targetElement, edit.Index);
                 i++;
             }
             else if (edit.Type == EditType.Remove)
             {
-                Renderer.ElementManager.RemoveChildElement(_targetElement, edit.Element._targetElement, edit.Index);
+                Renderer._elementManager.RemoveChildElement(_targetElement, edit.Element._targetElement, edit.Index);
             }
             else if (edit.Type == EditType.Add)
             {
-                Console.WriteLine("Adapter add chidl");
-                Renderer.ElementManager.AddChildElement(_targetElement, edit.Element._targetElement, edit.Index);
+                Console.WriteLine("Pending add child");
+                var parentName = (_targetElement as Element)?.Id
+                    ?? _targetElement?.GetType().Name
+                    ?? "<null-parent>";
+                Console.WriteLine("{0} -> {1} : {2}", parentName, edit.Element._targetElement, edit.Index);
+
+                if (edit.Index < 0)
+                {
+                    continue;
+                }
+
+                Renderer._elementManager.AddChildElement(_targetElement, edit.Element._targetElement, edit.Index);
             }
         }
 
         _pendingEdits.Clear();
     }
 
-    private void AddPendingRemoval(NativeComponentAdapter childToRemove, int index, HashSet<NativeComponentAdapter> adaptersWithPendingEdits)
+    private void AddPendingRemoval(YogaComponentAdapter childToRemove, int index, HashSet<YogaComponentAdapter> adaptersWithPendingEdits)
     {
         var targetEdits = PhysicalTarget._pendingEdits ??= [];
         adaptersWithPendingEdits.Add(PhysicalTarget);
@@ -188,9 +193,9 @@ internal sealed class NativeComponentAdapter(
         targetEdits.Insert(i, new(EditType.Remove, index, childToRemove));
     }
 
-    private void AddPendingAddition(NativeComponentAdapter childToAdd, int index, HashSet<NativeComponentAdapter> adaptersWithPendingEdits)
+    private void AddPendingAddition(YogaComponentAdapter childToAdd, int index, HashSet<YogaComponentAdapter> adaptersWithPendingEdits)
     {
-        Console.WriteLine(nameof(AddPendingAddition));
+        // Cosnole.WriteLine(nameof(AddPendingAddition));
         /* In cases when there are non-elements involved, the order of add operations could be wrong. E.g. 
         AppShell.razor
         <Shell>
@@ -207,7 +212,6 @@ internal sealed class NativeComponentAdapter(
 
         To avoid such behavior, we attempt to re-order Add operations by index - to add Page1 with index 0, then Page2 with index1.
         */
-
         var targetEdits = PhysicalTarget._pendingEdits ??= [];
 
 
@@ -230,24 +234,24 @@ internal sealed class NativeComponentAdapter(
         adaptersWithPendingEdits.Add(PhysicalTarget);
     }
 
-    private void ApplyRemoveFrame(int siblingIndex, HashSet<NativeComponentAdapter> adaptersWithPendingEdits)
+    private void ApplyRemoveFrame(int siblingIndex, HashSet<YogaComponentAdapter> adaptersWithPendingEdits)
     {
-        Console.WriteLine(nameof(ApplyRemoveFrame));
         var childToRemove = Children[siblingIndex];
         RemoveChildElementAndDescendants(childToRemove, adaptersWithPendingEdits);
         Children.RemoveAt(siblingIndex);
     }
 
-    private void RemoveChildElementAndDescendants(NativeComponentAdapter childToRemove, HashSet<NativeComponentAdapter> adaptersWithPendingEdits)
+    private void RemoveChildElementAndDescendants(YogaComponentAdapter childToRemove, HashSet<YogaComponentAdapter> adaptersWithPendingEdits)
     {
-        Console.WriteLine(nameof(RemoveChildElementAndDescendants));
-
-        if (childToRemove?._targetElement != null)
+        if (childToRemove?._targetElement is Element)
         {
             // This adapter represents a physical element, so by removing it, we implicitly
             // remove all descendants.
             var index = PhysicalTarget.GetChildPhysicalIndex(childToRemove);
-            PhysicalTarget.AddPendingRemoval(childToRemove, index, adaptersWithPendingEdits);
+            if (index >= 0)
+            {
+                PhysicalTarget.AddPendingRemoval(childToRemove, index, adaptersWithPendingEdits);
+            }
 
             if (PhysicalTarget._targetElement is INonPhysicalChild { ShouldAddChildrenToParent: true })
             {
@@ -258,7 +262,7 @@ internal sealed class NativeComponentAdapter(
         else if (childToRemove != null)
         {
             // This adapter is just a container for other adapters
-            for (int i = 0; i < childToRemove.Children.Count; i++)
+            for (int i = childToRemove.Children.Count - 1; i >= 0; i--)
                 childToRemove.ApplyRemoveFrame(i, adaptersWithPendingEdits);
         }
     }
@@ -269,16 +273,15 @@ internal sealed class NativeComponentAdapter(
         int siblingIndex,
         RenderTreeFrame[] frames,
         int frameIndex,
-        HashSet<NativeComponentAdapter> adaptersWithPendingEdits)
+        HashSet<YogaComponentAdapter> adaptersWithPendingEdits)
     {
 
-        Console.WriteLine(nameof(ApplyPrependFrame));
+        // Cosnole.WriteLine(nameof(ApplyPrependFrame));
         ref var frame = ref frames[frameIndex];
         switch (frame.FrameType)
         {
             case RenderTreeFrameType.Component:
                 {
-                    Console.WriteLine("Component");
                     var childAdapter = AddChildAdapter(siblingIndex, frame);
 
                     if (childAdapter._targetElement is not null)
@@ -292,7 +295,7 @@ internal sealed class NativeComponentAdapter(
                 }
             case RenderTreeFrameType.Markup:
                 {
-                    Console.WriteLine("Markup");
+                    // Console.WriteLine("Markup - {0}", _targetElement);
                     if (!string.IsNullOrWhiteSpace(frame.MarkupContent))
                     {
                         if (_targetElement is IHandleChildContentText handleChildContentText)
@@ -301,7 +304,7 @@ internal sealed class NativeComponentAdapter(
                         }
                         else
                         {
-                            var typeName = _targetElement?.TargetElement?.GetType()?.Name;
+                            var typeName = _targetElement?.GetType()?.Name;
                             throw new NotImplementedException($"Element {typeName} does not support text content: " + frame.MarkupContent);
                         }
                     }
@@ -311,18 +314,23 @@ internal sealed class NativeComponentAdapter(
                 }
             case RenderTreeFrameType.Text:
                 {
-                    Console.WriteLine("Text");
+                    // Cosnole.WriteLine("Text");
                     if (_targetElement is IHandleChildContentText handleChildContentText)
                     {
                         handleChildContentText.HandleText(siblingIndex, frame.TextContent);
                     }
                     else if (!string.IsNullOrWhiteSpace(frame.TextContent))
                     {
-                        var typeName = _targetElement?.TargetElement?.GetType()?.Name;
+                        var typeName = _targetElement?.GetType()?.Name;
                         throw new NotImplementedException($"Element {typeName} does not support text content: " + frame.MarkupContent);
                     }
                     // We don't need any adapter for Text frames, but we care about frame position, therefore we simply insert null here.
                     Children.Insert(siblingIndex, null);
+                    return 1;
+                }
+            case RenderTreeFrameType.Attribute:
+                {
+                    Console.WriteLine("{0} - {1}", frame.AttributeName, frame.AttributeValue);
                     return 1;
                 }
             // case RenderTreeFrameType.Element:
@@ -344,35 +352,24 @@ internal sealed class NativeComponentAdapter(
     /// <summary>
     /// Add element as a child element for closest physical parent.
     /// </summary>
-    private void AddElementAsChildElement(NativeComponentAdapter childAdapter, HashSet<NativeComponentAdapter> adaptersWithPendingEdits)
+    private void AddElementAsChildElement(YogaComponentAdapter childAdapter, HashSet<YogaComponentAdapter> adaptersWithPendingEdits, int? index = null)
     {
-        Console.WriteLine(nameof(AddElementAsChildElement));
-
-        if (childAdapter is null)
+        if (childAdapter is null || PhysicalTarget is null)
+        {
             return;
+        }
 
-        Console.WriteLine(childAdapter);
-        Console.WriteLine(childAdapter._targetElement);
 
-        var elementIndex = PhysicalTarget.GetChildPhysicalIndex(childAdapter);
+        var elementIndex = index.HasValue ? index.Value : PhysicalTarget.GetChildPhysicalIndex(childAdapter);
+
 
         // For most elements we should add element as child after all properties to have them fully initialized before rendering.
         // However, INonPhysicalChild elements are not real elements, but apply to parent instead, therefore should be added as child before any properties are set.
-        if (childAdapter._targetElement is INonPhysicalChild)
-        {
-            Console.WriteLine("Non physical");
-            Renderer.ElementManager.AddChildElement(PhysicalTarget._targetElement, childAdapter._targetElement, elementIndex);
-        }
-        else
-        {
-            Console.WriteLine("Physical");
-            AddPendingAddition(childAdapter, elementIndex, adaptersWithPendingEdits);
-        }
 
-        if (PhysicalTarget._targetElement is INonPhysicalChild { ShouldAddChildrenToParent: true })
+        if (childAdapter._targetElement is Element
+            && elementIndex >= 0)
         {
-            Console.WriteLine("Should add");
-            PhysicalTarget.Parent.AddElementAsChildElement(childAdapter, adaptersWithPendingEdits);
+            AddPendingAddition(childAdapter, elementIndex, adaptersWithPendingEdits);
         }
     }
 
@@ -395,13 +392,12 @@ internal sealed class NativeComponentAdapter(
     /// * Adapter4
     /// </code>
     /// </summary>
-    private int GetChildPhysicalIndex(NativeComponentAdapter childAdapter)
+    private int GetChildPhysicalIndex(YogaComponentAdapter childAdapter)
     {
-        Console.WriteLine(nameof(GetChildPhysicalIndex));
         var index = 0;
         return FindChildPhysicalIndexRecursive(this, childAdapter, ref index) ? index : -1;
 
-        static bool FindChildPhysicalIndexRecursive(NativeComponentAdapter parent, NativeComponentAdapter targetChild, ref int index)
+        static bool FindChildPhysicalIndexRecursive(YogaComponentAdapter parent, YogaComponentAdapter targetChild, ref int index)
         {
             foreach (var child in parent.Children)
             {
@@ -411,12 +407,12 @@ internal sealed class NativeComponentAdapter(
                 if (child == targetChild)
                     return true;
 
-                if (child._targetElement != null && child._targetElement is not INonPhysicalChild)
+                if (child._targetElement != null && child._targetElement is Element)
                 {
                     index++;
                 }
 
-                if (child._targetElement == null || child._targetElement is INonPhysicalChild { ShouldAddChildrenToParent: true })
+                if (child._targetElement == null || child._targetElement is not Element)
                 {
                     if (FindChildPhysicalIndexRecursive(child, targetChild, ref index))
                         return true;
@@ -434,9 +430,9 @@ internal sealed class NativeComponentAdapter(
         RenderTreeFrame[] frames,
         int startIndex,
         int endIndexExcl,
-        HashSet<NativeComponentAdapter> adaptersWithPendingEdits)
+        HashSet<YogaComponentAdapter> adaptersWithPendingEdits)
     {
-        Console.WriteLine(nameof(InsertFrameRange));
+        // // Cosnole.WriteLine(nameof(InsertFrameRange));
         var origChildIndex = childIndex;
         for (var frameIndex = startIndex; frameIndex < endIndexExcl; frameIndex++)
         {
@@ -453,7 +449,7 @@ internal sealed class NativeComponentAdapter(
 
     private static int CountDescendantFrames(RenderTreeFrame frame)
     {
-        Console.WriteLine(nameof(CountDescendantFrames));
+        // Cosnole.WriteLine(nameof(CountDescendantFrames));
         return frame.FrameType switch
         {
             // The following frame types have a subtree length. Other frames may use that memory slot
@@ -467,14 +463,13 @@ internal sealed class NativeComponentAdapter(
         ;
     }
 
-    private NativeComponentAdapter AddChildAdapter(int siblingIndex, RenderTreeFrame frame)
+    private YogaComponentAdapter AddChildAdapter(int siblingIndex, RenderTreeFrame frame)
     {
-        Console.WriteLine(nameof(AddChildAdapter));
         var name = frame.FrameType is RenderTreeFrameType.Component
             ? $"For: '{frame.Component.GetType().FullName}'"
             : $"{frame.FrameType}, sib#={siblingIndex}";
 
-        var childAdapter = new NativeComponentAdapter(Renderer, PhysicalTarget)
+        var childAdapter = new YogaComponentAdapter(Renderer, PhysicalTarget)
         {
             Parent = this,
             Name = name,
@@ -485,7 +480,9 @@ internal sealed class NativeComponentAdapter(
         {
             Renderer.RegisterComponentAdapter(childAdapter, frame.ComponentId);
 
-            if (frame.Component is IElementHandler targetHandler)
+            // Only real visual elements participate in physical parent/child tree.
+            // Components like Router/Found/RouteView/LayoutView are non-physical wrappers.
+            if (frame.Component is Element targetHandler)
             {
                 childAdapter._targetElement = targetHandler;
             }
@@ -504,6 +501,32 @@ internal sealed class NativeComponentAdapter(
         }
     }
 
-    record struct PendingEdit(EditType Type, int Index, NativeComponentAdapter Element);
+    record struct PendingEdit(EditType Type, int Index, YogaComponentAdapter Element);
     enum EditType { Add, Remove }
+}
+
+public interface INonPhysicalChild
+{
+    /// <summary>
+    /// This is called when this component would otherwise be added to a parent container. Instead
+    /// of adding this to a parent container, this method is called, so that this component can track
+    /// which element would have been its parent. This is useful so that this component can use the
+    /// parent component for any children it might have (that is, delegate parenting of its children to
+    /// its parent).
+    /// </summary>
+    /// <param name="parentElement"></param>
+    void SetParent(object parentElement);
+
+    /// <summary>
+    /// This is called when this component would otherwise be removed from a parent container.
+    /// This is useful so that this component can unapply its effects from parent element.
+    /// </summary>
+    void RemoveFromParent(object parentElement);
+
+    /// <summary>
+    /// If this property is true, then renderer will pass children of this component to parent.
+    /// This is useful if you want to apply some effects to children (e.g. attached properties),
+    /// but still add them to parent element.
+    /// </summary>
+    internal bool ShouldAddChildrenToParent { get => false; }
 }

@@ -1,0 +1,39 @@
+@using MaterialColorUtilities.Schemes
+<YogaView
+    Background="@ResolvedBackground"
+    BorderRadius="@BorderRadius"
+    Padding="@Padding"
+    Gap="@Gap"
+    BorderWidth="@BorderWidth"
+    BorderColor="@ResolvedBorderColor">
+    @ChildContent
+</YogaView>
+
+@code {
+    [CascadingParameter]
+    public Scheme<uint>? Theme { get; set; }
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    [Parameter]
+    public string? Background { get; set; }
+
+    [Parameter]
+    public string BorderRadius { get; set; } = "12";
+
+    [Parameter]
+    public string Padding { get; set; } = "16";
+
+    [Parameter]
+    public float Gap { get; set; } = 8;
+
+    [Parameter]
+    public string BorderWidth { get; set; } = "1";
+
+    [Parameter]
+    public string? BorderColor { get; set; }
+
+    private string ResolvedBackground => Background ?? Theme?.SurfaceContainer.ToHexColor() ?? "#ffffff";
+    private string ResolvedBorderColor => BorderColor ?? Theme?.Outline.ToHexColor() ?? "#dddddd";
+}

@@ -1,0 +1,34 @@
+@using BlazorBindings.Brutalist.Elements
+
+<YogaWindow
+    Background="#f7f7fb"
+    Direction="Yoga.YGFlexDirection.YGFlexDirectionColumn"
+    Padding="40"
+    Gap="20">
+
+    <YogaText FontSize="40" Color="#1f2937" TextAlign="left">
+        Brutalist Image Renderer
+    </YogaText>
+
+    <YogaView Background="#ffffff" BorderRadius="18" Padding="24" Gap="12">
+        <YogaText FontSize="20" Color="#111827" TextAlign="left">
+            This UI was rendered off-screen.
+        </YogaText>
+
+        <YogaText FontSize="16" Color="#4b5563" TextAlign="left">
+            No OpenTK window is created. Output is a PNG image.
+        </YogaText>
+
+        <YogaView Direction="Yoga.YGFlexDirection.YGFlexDirectionRow" Gap="10" Margin="8 0 0">
+            <YogaView Background="#2563eb" BorderRadius="999" Padding="8 14">
+                <YogaText FontSize="14" Color="#ffffff" TextAlign="left">Headless</YogaText>
+            </YogaView>
+            <YogaView Background="#059669" BorderRadius="999" Padding="8 14">
+                <YogaText FontSize="14" Color="#ffffff" TextAlign="left">Skia</YogaText>
+            </YogaView>
+            <YogaView Background="#7c3aed" BorderRadius="999" Padding="8 14">
+                <YogaText FontSize="14" Color="#ffffff" TextAlign="left">Blazor</YogaText>
+            </YogaView>
+        </YogaView>
+    </YogaView>
+</YogaWindow>

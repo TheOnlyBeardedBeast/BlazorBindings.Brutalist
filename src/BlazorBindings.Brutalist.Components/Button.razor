@@ -1,0 +1,184 @@
+@using BlazorBindings.Brutalist.Phosphor
+@using MaterialColorUtilities.Schemes
+<YogaClickableView Height="@ResolvedHeight" Padding="@ResolvedPadding" Background="@ResolvedVariantBackground"
+                   BorderRadius="@ResolvedBorderRadius" OnClick="@OnClick" OnFocus="@HandleFocus" OnBlur="@HandleBlur"
+                   JustifyContent="@JustifyContent" OutlineColor="@(IsFocused ? @Theme?.Primary.ToHexColor() : null)"
+                   OutlineWidth="@((IsFocused ? 3 : 0).ToString())" OutlineOffset="2" BorderColor="@ResolvedVariantBorderColor"
+                   BorderWidth="@ResolvedVariantBorderWidth" Direction="Yoga.YGFlexDirection.YGFlexDirectionRow" Gap="8"
+                   AlignItems="@AlignItems">
+    @if (HeadIcon.HasValue)
+    {
+        <YogaView Shrink="0">
+            <PhosphorIcon Icon="@HeadIcon.Value" Size="24" Color="@ResolvedColor" />
+        </YogaView>
+    }
+    <YogaText Color="@ResolvedColor" FontSize="@ResolvedFontSize">
+        @Label
+    </YogaText>
+    @if (TailIcon.HasValue)
+    {
+        <YogaView Shrink="0">
+            <PhosphorIcon Icon="@TailIcon.Value" Size="24" Color="@ResolvedColor" />
+        </YogaView>
+    }
+</YogaClickableView>
+
+@code
+{
+    private static readonly byte[] Sizes = { 32, 40, 56, 96, 136 };
+
+    private static readonly byte[] Radii = { 16, 20, 28, 48, 68 };
+
+    private static readonly byte[] Paddings = { 12, 16, 24, 48, 64 };
+
+    private static readonly byte[] Fontsizes = { 14, 14, 16, 18, 24 };
+
+    [CascadingParameter]
+    public Scheme<uint>? Theme { get; set; }
+
+    [Parameter]
+    public string? AlignItems { get; set; } = "center";
+
+    [Parameter]
+    public string? JustifyContent { get; set; } = "center";
+
+    [Parameter]
+    public PhosphorIcons? HeadIcon { get; set; }
+
+    [Parameter]
+    public PhosphorIcons? TailIcon { get; set; }
+
+    [Parameter]
+    public string? Label { get; set; }
+
+    [Parameter]
+    public string? Background { get; set; }
+
+    [Parameter]
+    public string? Color { get; set; }
+
+    [Parameter]
+    public float? FontSize { get; set; }
+
+    [Parameter]
+    public float? Height { get; set; }
+
+    [Parameter]
+    public string? Padding { get; set; }
+
+    [Parameter]
+    public string? BorderRadius { get; set; }
+
+    [Parameter]
+    public EventCallback OnClick { get; set; }
+
+    [Parameter]
+    public EventCallback? OnFocus { get; set; }
+
+    [Parameter]
+    public EventCallback? OnBlur { get; set; }
+
+    [Parameter]
+    public string? Size { get; set; } = "M";
+
+    private bool IsFocused = false;
+
+    private void HandleFocus()
+    {
+        OnFocus?.InvokeAsync(null);
+        IsFocused = true;
+    }
+
+    private void HandleBlur()
+    {
+        OnBlur?.InvokeAsync(null);
+        IsFocused = false;
+    }
+
+    private string SchemeMainColor => Tone switch
+    {
+        "Secondary" => Theme?.Secondary.ToHexColor() ?? "#ff0000",
+        "Tertiary" => Theme?.Tertiary.ToHexColor() ?? "#ff0000",
+        _ => Theme?.Primary.ToHexColor() ?? "#ff0000"
+    };
+
+    private string SchemeOnColor => Tone switch
+    {
+        "Secondary" => Theme?.OnSecondary.ToHexColor() ?? "#ffffff",
+        "Tertiary" => Theme?.OnTertiary.ToHexColor() ?? "#ffffff",
+        _ => Theme?.OnPrimary.ToHexColor() ?? "#ffffff"
+    };
+
+    private string ResolvedColor => Color ?? Variant switch
+    {
+        "Outlined" => SchemeMainColor,
+        "Text" => SchemeMainColor,
+        _ => SchemeOnColor
+    };
+
+    private int ResolvedHeight => Height.HasValue ? (int)Height.Value : Size switch
+    {
+        "XS" => Sizes[0],
+        "S" => Sizes[1],
+        "M" => Sizes[2],
+        "L" => Sizes[3],
+        "XL" => Sizes[4],
+        _ => Sizes[2]
+    };
+
+    private string ResolvedBorderRadius => BorderRadius ?? Size switch
+    {
+        "XS" => Radii[0].ToString(),
+        "S" => Radii[1].ToString(),
+        "M" => Radii[2].ToString(),
+        "L" => Radii[3].ToString(),
+        "XL" => Radii[4].ToString(),
+        _ => Radii[2].ToString()
+    };
+
+    private string ResolvedPadding => Padding ?? Size switch
+    {
+        "XS" => $"0 {Paddings[0]}",
+        "S" => $"0 {Paddings[1]}",
+        "M" => $"0 {Paddings[2]}",
+        "L" => $"0 {Paddings[3]}",
+        "XL" => $"0 {Paddings[4]}",
+        _ => $"0 {Paddings[2]}"
+    };
+
+    private float ResolvedFontSize => FontSize.HasValue ? FontSize.Value : Size switch
+    {
+        "XS" => Fontsizes[0],
+        "S" => Fontsizes[1],
+        "M" => Fontsizes[2],
+        "L" => Fontsizes[3],
+        "XL" => Fontsizes[4],
+        _ => Fontsizes[2]
+    };
+
+    [Parameter]
+    public string Variant { get; set; } = "Filled";
+
+    [Parameter]
+    public string Tone { get; set; } = "Primary";
+
+    private string? ResolvedVariantBackground => Variant switch
+    {
+        "Filled" => Background ?? SchemeMainColor,
+        "Outlined" => null,
+        "Text" => null,
+        _ => Background ?? SchemeMainColor
+    };
+
+    public string? ResolvedVariantBorderWidth => Variant switch
+    {
+        "Outlined" => "2",
+        _ => null
+    };
+
+    public string? ResolvedVariantBorderColor => Variant switch
+    {
+        "Outlined" => SchemeMainColor,
+        _ => null
+    };
+}

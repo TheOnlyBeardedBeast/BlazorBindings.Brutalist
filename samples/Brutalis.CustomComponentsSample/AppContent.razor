@@ -1,0 +1,249 @@
+@using BlazorBindings.Brutalist.Components.Drawer
+@using BlazorBindings.Brutalist.Phosphor
+@using MaterialColorUtilities.Schemes
+@using MaterialColorUtilities.Palettes
+
+<YogaWindow Direction="Yoga.YGFlexDirection.YGFlexDirectionRow" Background="@CurrentTheme.Background.ToHexColor()"
+            AlignItems="stretch" Position="relative">
+    <Drawer />
+    <YogaView Padding="24" Direction="Yoga.YGFlexDirection.YGFlexDirectionColumn" Gap="16" Grow="1">
+        <YogaView Shrink="0">
+            <PhosphorIcon Icon="@PhosphorIcons.Acorn" Size="48" Color="@CurrentTheme.OnBackground.ToHexColor()" />
+            <YogaText Shrink="0" FontSize="28" Color="@CurrentTheme.OnBackground.ToHexColor()" TextAlign="left">
+                Button
+            </YogaText>
+            <YogaText Shrink="0" FontSize="14" Color="@CurrentTheme.OnSurfaceVariant.ToHexColor()" TextAlign="left">
+                A pressable element that triggers an action. Supports sizes, variants, and tones.
+            </YogaText>
+        </YogaView>
+        <YogaView Direction="Yoga.YGFlexDirection.YGFlexDirectionRow" Gap="8" Wrap="wrap" AlignItems="center"
+                  Shrink="0">
+            <Button Label="Dark Theme" OnClick="UseDarkTheme" Tone="Secondary" />
+            <Button Label="Light Theme" OnClick="UseLightTheme" Tone="Secondary" Variant="Outlined" />
+            <Button Label="Open Modal" OnClick="OpenModal" />
+        </YogaView>
+        <YogaScrollableView Padding="0 8 0 0">
+            <YogaView Direction="Yoga.YGFlexDirection.YGFlexDirectionColumn" Gap="16" AlignItems="stretch">
+                <BrutalistCard BorderRadius="12" Padding="16" Gap="12">
+                    <YogaText FontSize="18" Color="@CurrentTheme.OnBackground.ToHexColor()" TextAlign="left">
+                        Size
+                    </YogaText>
+                    <YogaText FontSize="12" Color="@CurrentTheme.OnSurfaceVariant.ToHexColor()" TextAlign="left">
+                        Use the Size parameter to control height, padding, border-radius and font size together.
+                    </YogaText>
+                    <YogaView Direction="Yoga.YGFlexDirection.YGFlexDirectionRow" Gap="8" Wrap="wrap"
+                              AlignItems="center">
+                        <Button Size="XS" Label="XS" OnClick="Increment" />
+                        <Button Size="S" Label="S" OnClick="Increment" />
+                        <Button Size="M" Label="M" OnClick="Increment" />
+                        <Button Size="L" Label="L" OnClick="Increment" />
+                        <Button Size="XL" Label="XL" OnClick="Increment" />
+                    </YogaView>
+                    <YogaText FontSize="12" Color="@CurrentTheme.OnSurfaceVariant.ToHexColor()" TextAlign="left">
+                        Clicked @Count times
+                    </YogaText>
+                </BrutalistCard>
+                <BrutalistCard BorderRadius="12" Padding="16" Gap="12">
+                    <YogaText FontSize="18" Color="@CurrentTheme.OnBackground.ToHexColor()" TextAlign="left">
+                        Variant
+                    </YogaText>
+                    <YogaText FontSize="12" Color="@CurrentTheme.OnSurfaceVariant.ToHexColor()" TextAlign="left">
+                        Three visual styles: Filled (default), Outlined, and Text.
+                    </YogaText>
+                    <YogaView Direction="Yoga.YGFlexDirection.YGFlexDirectionRow" Gap="8" Wrap="wrap"
+                              AlignItems="center">
+                        <Button Variant="Filled" Label="Filled" OnClick="Increment" />
+                        <Button Variant="Outlined" Label="Outlined" OnClick="Increment" />
+                        <Button Variant="Text" Label="Text" OnClick="Increment" />
+                    </YogaView>
+                </BrutalistCard>
+                <BrutalistCard BorderRadius="12" Padding="16" Gap="12">
+                    <YogaText FontSize="18" Color="@CurrentTheme.OnBackground.ToHexColor()" TextAlign="left">
+                        Tone
+                    </YogaText>
+                    <YogaText FontSize="12" Color="@CurrentTheme.OnSurfaceVariant.ToHexColor()" TextAlign="left">
+                        Maps to Material You color roles: Primary, Secondary, and Tertiary.
+                    </YogaText>
+                    <YogaView Direction="Yoga.YGFlexDirection.YGFlexDirectionRow" Gap="8" Wrap="wrap"
+                              AlignItems="center">
+                        <Button Tone="Primary" Variant="Filled" Label="Primary" OnClick="Increment" />
+                        <Button Tone="Secondary" Variant="Filled" Label="Secondary" OnClick="Increment" />
+                        <Button Tone="Tertiary" Variant="Filled" Label="Tertiary" OnClick="Increment" />
+                    </YogaView>
+                    <YogaView Direction="Yoga.YGFlexDirection.YGFlexDirectionRow" Gap="8" Wrap="wrap"
+                              AlignItems="center">
+                        <Button Tone="Primary" Variant="Outlined" Label="Primary" OnClick="Increment" />
+                        <Button Tone="Secondary" Variant="Outlined" Label="Secondary" OnClick="Increment" />
+                        <Button Tone="Tertiary" Variant="Outlined" Label="Tertiary" OnClick="Increment" />
+                    </YogaView>
+                    <YogaView Direction="Yoga.YGFlexDirection.YGFlexDirectionRow" Gap="8" Wrap="wrap"
+                              AlignItems="center">
+                        <Button Tone="Primary" Variant="Text" Label="Primary" OnClick="Increment" />
+                        <Button Tone="Secondary" Variant="Text" Label="Secondary" OnClick="Increment" />
+                        <Button Tone="Tertiary" Variant="Text" Label="Tertiary" OnClick="Increment" />
+                    </YogaView>
+                </BrutalistCard>
+                <BrutalistCard BorderRadius="12" Padding="16" Gap="12">
+                    <YogaText FontSize="18" Color="@CurrentTheme.OnBackground.ToHexColor()" TextAlign="left">
+                        Custom Colors
+                    </YogaText>
+                    <YogaText FontSize="12" Color="@CurrentTheme.OnSurfaceVariant.ToHexColor()" TextAlign="left">
+                        Background and Color override the tone-derived colors when specified directly.
+                    </YogaText>
+                    <YogaView Direction="Yoga.YGFlexDirection.YGFlexDirectionRow" Gap="8" Wrap="wrap"
+                              AlignItems="center">
+                        <Button Label="Danger" Background="#ef4444" Color="#ffffff" OnClick="Reset" />
+                        <Button Label="Success" Background="#22c55e" Color="#ffffff" OnClick="Increment" />
+                        <Button Label="Warning" Background="#f59e0b" Color="#000000" OnClick="Increment" />
+                    </YogaView>
+                    <YogaText FontSize="12" Color="@CurrentTheme.OnSurfaceVariant.ToHexColor()" TextAlign="left">
+                        Clicked @Count times
+                    </YogaText>
+                </BrutalistCard>
+                <BrutalistCard BorderRadius="12" Padding="16" Gap="12">
+                    <YogaText FontSize="18" Color="@CurrentTheme.OnBackground.ToHexColor()" TextAlign="left">
+                        RichText
+                    </YogaText>
+                    <YogaText FontSize="12" Color="@CurrentTheme.OnSurfaceVariant.ToHexColor()" TextAlign="left">
+                        Renders markdown-like content with headings, quotes, lists, and clickable links.
+                    </YogaText>
+                    <RichText Text="@RichTextSample" OnLinkClick="HandleRichTextLinkClick" BoldScale="1.25f" />
+                    <YogaText FontSize="12" Color="@CurrentTheme.OnSurfaceVariant.ToHexColor()" TextAlign="left"
+                              WrapText>
+                        Last clicked link: @LastClickedLink
+                    </YogaText>
+                </BrutalistCard>
+                @* <BrutalistCard BorderRadius="12" Padding="16" Gap="12">
+                    <YogaText FontSize="18" Color="@CurrentTheme.OnBackground.ToHexColor()" TextAlign="left">
+                        SineWave Loader
+                    </YogaText>
+                    <YogaText FontSize="12" Color="@CurrentTheme.OnSurfaceVariant.ToHexColor()" TextAlign="left"
+                              WrapText>
+                        Animated loader drawn directly with Skia. Adjust speed/amplitude and pause/resume animation.
+                    </YogaText>
+                    <SineWaveLoader Height="44" Amplitude="@LoaderAmplitude" Speed="@LoaderSpeed"
+                                    Animated="@LoaderAnimated" StrokeWidth="3" Margin="4 0" />
+                    <YogaText FontSize="12" Color="@CurrentTheme.OnSurfaceVariant.ToHexColor()" TextAlign="left"
+                              WrapText>
+                        Speed: @LoaderSpeed.ToString("0.0")x · Amplitude: @LoaderAmplitude.ToString("0")
+                    </YogaText>
+                    <YogaView Direction="Yoga.YGFlexDirection.YGFlexDirectionRow" Gap="8" Wrap="wrap"
+                              AlignItems="center">
+                        <Button Label="Slower" Size="S" Variant="Outlined" OnClick="DecreaseLoaderSpeed" />
+                        <Button Label="Faster" Size="S" Variant="Outlined" OnClick="IncreaseLoaderSpeed" />
+                        <Button Label="Lower" Size="S" Variant="Outlined" OnClick="DecreaseLoaderAmplitude" />
+                        <Button Label="Higher" Size="S" Variant="Outlined" OnClick="IncreaseLoaderAmplitude" />
+                        <Button Label="@(LoaderAnimated ? "Pause" : "Resume")" Size="S"
+                                OnClick="ToggleLoaderAnimation" />
+                    </YogaView>
+                </BrutalistCard> *@
+                <ComboBox />
+            </YogaView>
+        </YogaScrollableView>
+    </YogaView>
+
+    @* Modal *@
+    @if (IsModalOpen)
+    {
+        <YogaView Position="absolute" Top="0" Left="0" Right="0" Bottom="0" Background="#000000aa" JustifyContent="center"
+                  AlignItems="center">
+            <YogaView Background="@CurrentTheme.Surface1.ToHexColor()" BorderRadius="28" Padding="24" Gap="16" Width="400"
+                      MaxHeight="600">
+                <YogaText FontSize="24" Color="@CurrentTheme.OnSurface.ToHexColor()">
+                    Modal Dialog
+                </YogaText>
+                <YogaText FontSize="14" Color="@CurrentTheme.OnSurfaceVariant.ToHexColor()" TextAlign="left" WrapText>
+                    This is a modal positioned absolutely at the bottom of the component.
+                </YogaText>
+                <YogaView Direction="Yoga.YGFlexDirection.YGFlexDirectionRow" Gap="8" JustifyContent="flex-end">
+                    <Button Label="Cancel" OnClick="CloseModal" Variant="Text" />
+                    <Button Label="Confirm" OnClick="CloseModal" />
+                </YogaView>
+            </YogaView>
+        </YogaView>
+    }
+
+</YogaWindow>
+
+@code
+{
+    private int Count;
+    private bool IsModalOpen = false;
+    private string LastClickedLink = "(none)";
+    private bool LoaderAnimated = true;
+    private float LoaderSpeed = 1.6f;
+    private float LoaderAmplitude = 8f;
+    private string? SelectedFramework = "Blazor";
+    private static readonly string[] FrameworkOptions = ["Blazor", "MAUI", "Skia", "OpenTK", "Yoga"];
+    private static readonly string RichTextSample = string.Join("\n", [
+        "# Rich Text Demo",
+        "This is a normal sentence with **larger bold text** in the middle and a [link](https://github.com/dreamescaper/BlazorBindings.Maui).",
+        string.Empty,
+        "> Quotes are rendered as emphasized callouts.",
+        string.Empty,
+        "- Unordered list item",
+        "- Another item with __bold emphasis__ and a [clickable link](https://learn.microsoft.com/aspnet/core/blazor/)",
+        string.Empty,
+        "1. Ordered item one",
+        "2. Ordered item two",
+        "3. Ordered item three with **inline emphasis**"
+    ]);
+
+    [Parameter]
+    public EventCallback UseDarkTheme { get; set; }
+
+    [Parameter]
+    public EventCallback UseLightTheme { get; set; }
+
+    [CascadingParameter]
+    public Scheme<uint> CurrentTheme { get; set; } = new LightSchemeMapper().Map(CorePalette.Of(0x6200EE));
+
+    private void Increment() => Count++;
+
+    private void Reset() => Count = 0;
+
+    private void OpenModal() => IsModalOpen = true;
+
+    private void CloseModal() => IsModalOpen = false;
+
+    private void HandleRichTextLinkClick(string link)
+    {
+        LastClickedLink = link;
+    }
+
+    private void ToggleLoaderAnimation()
+    {
+        LoaderAnimated = !LoaderAnimated;
+        StateHasChanged();
+    }
+
+    private void IncreaseLoaderSpeed()
+    {
+        LoaderSpeed = Math.Min(4f, LoaderSpeed + 0.2f);
+        StateHasChanged();
+    }
+
+    private void DecreaseLoaderSpeed()
+    {
+        LoaderSpeed = Math.Max(0.2f, LoaderSpeed - 0.2f);
+        StateHasChanged();
+    }
+
+    private void IncreaseLoaderAmplitude()
+    {
+        LoaderAmplitude = Math.Min(16f, LoaderAmplitude + 1f);
+        StateHasChanged();
+    }
+
+    private void DecreaseLoaderAmplitude()
+    {
+        LoaderAmplitude = Math.Max(2f, LoaderAmplitude - 1f);
+        StateHasChanged();
+    }
+
+    private Task OnFrameworkChanged(string? value)
+    {
+        SelectedFramework = value;
+        return Task.CompletedTask;
+    }
+}

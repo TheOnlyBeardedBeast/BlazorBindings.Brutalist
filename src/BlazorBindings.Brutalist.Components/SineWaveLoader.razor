@@ -1,0 +1,50 @@
+@using MaterialColorUtilities.Schemes
+
+<YogaSineWaveLoader    Width="@Width"    Height="@Height"    Margin="@Margin"    Padding="@Padding"    Amplitude="@Amplitude"
+                       Wavelength="@Wavelength"    Speed="@Speed"    StrokeWidth="@StrokeWidth"    Samples="@Samples"    Animated="@Animated"
+                       Color="@ResolvedColor"    SecondaryColor="@ResolvedSecondaryColor" />
+
+@code {
+    [CascadingParameter]
+    public Scheme<uint>? Theme { get; set; }
+
+    [Parameter]
+    public float? Width { get; set; }
+
+    [Parameter]
+    public float? Height { get; set; } = 32;
+
+    [Parameter]
+    public string? Margin { get; set; }
+
+    [Parameter]
+    public string? Padding { get; set; }
+
+    [Parameter]
+    public float Amplitude { get; set; } = 8f;
+
+    [Parameter]
+    public float Wavelength { get; set; } = 44f;
+
+    [Parameter]
+    public float Speed { get; set; } = 1.6f;
+
+    [Parameter]
+    public float StrokeWidth { get; set; } = 3f;
+
+    [Parameter]
+    public int Samples { get; set; } = 72;
+
+    [Parameter]
+    public bool Animated { get; set; } = true;
+
+    [Parameter]
+    public string? Color { get; set; }
+
+    [Parameter]
+    public string? SecondaryColor { get; set; }
+
+    private string ResolvedColor => Color ?? Theme?.Primary.ToHexColor() ?? "#6366f1";
+    private string ResolvedSecondaryColor => SecondaryColor ?? (Theme is null ? "#80a5b4fc" :
+Theme.OutlineVariant.ToHexColor());
+}

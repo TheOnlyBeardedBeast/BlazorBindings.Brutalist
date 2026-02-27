@@ -1,0 +1,64 @@
+﻿@using BlazorBindings.Brutalist.Elements
+@using Microsoft.AspNetCore.Components.Routing
+@using Yoga
+@inject NavigationManager Navigation
+
+<YogaWindow Id="Wrapper" Direction="YGFlexDirection.YGFlexDirectionRow" Gap="8" Background="#ffffff" AlignItems="stretch" Wrap="nowrap">
+    <YogaView Padding="10" Gap="10" Direction="YGFlexDirection.YGFlexDirectionColumn" Width="250" Shrink="0" Background="#ff00ff" AlignContent="start">
+        <YogaText Color="#ffffff" FontSize="20" TextAlign="left" Margin="0 0 20">Menu</YogaText>
+        <YogaClickableView Padding="10" BorderRadius="10" Background="#a300a3" OnClick="GoToPageA">
+            <YogaText Color="#ffffff" FontSize="16" TextAlign="left">Go to Page A</YogaText>
+        </YogaClickableView>
+        <YogaClickableView Padding="10" BorderRadius="10" Background="#a300a3" OnClick="GoToPageB">
+            <YogaText Color="#ffffff" FontSize="16" TextAlign="left">Go to Page B</YogaText>
+        </YogaClickableView>
+        <YogaTextInput
+            Padding="10"
+            BorderRadius="10"
+            BorderWidth="1"
+            BorderColor="#c78bc7"
+            Background="#ffffff"
+            Color="#222222"
+            Placeholder="Type here..."
+            Value="@SearchText"
+            ValueChanged="OnSearchTextChanged" />
+        <YogaText Color="#ffffff" FontSize="12" TextAlign="left">Input: @SearchText</YogaText>
+        <YogaView Grow="1" />
+        <YogaText Color="#ffffff" FontSize="14" TextAlign="left">Click buttons to navigate</YogaText>
+    </YogaView>
+
+    <YogaView Grow="1" Background="#ffffff" Padding="16">
+        <Router AppAssembly="@typeof(App).Assembly">
+            <Found Context="routeData">
+                <RouteView RouteData="@routeData" @key="Navigation.Uri" />
+            </Found>
+            <NotFound>
+                <YogaText FontSize="20" TextAlign="left" Color="#222222">Route not found</YogaText>
+            </NotFound>
+        </Router>
+    </YogaView>
+</YogaWindow>
+
+@code {
+    private string SearchText = string.Empty;
+
+    protected override void OnInitialized()
+    {
+        Navigation.NavigateTo("/page-a");
+    }
+
+    private void OnSearchTextChanged(string value)
+    {
+        SearchText = value;
+    }
+
+    private void GoToPageA()
+    {
+        Navigation.NavigateTo("/page-a");
+    }
+
+    private void GoToPageB()
+    {
+        Navigation.NavigateTo("/page-b");
+    }
+}

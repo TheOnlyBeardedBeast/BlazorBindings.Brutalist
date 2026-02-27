@@ -1,0 +1,20 @@
+@using MaterialColorUtilities.Schemes
+@using MaterialColorUtilities.Palettes
+
+<BrutalistThemeProvider SeedColor="#6200ee" Dark="@Dark">
+    <AppContent UseDarkTheme="UseDarkTheme" UseLightTheme="UseLightTheme" />
+</BrutalistThemeProvider>
+
+@code {
+    private bool Dark;
+
+    private void UseDarkTheme()
+    {
+        Dark = true;
+    }
+
+    private void UseLightTheme()
+    {
+        Dark = false;
+    }
+}

@@ -1,0 +1,435 @@
+@using System.Text
+@using System.Text.RegularExpressions
+@using Microsoft.AspNetCore.Components.Rendering
+@using MaterialColorUtilities.Schemes
+@using Yoga
+
+<YogaView Direction="Yoga.YGFlexDirection.YGFlexDirectionColumn" AlignItems="stretch" Gap="@Gap" Margin="@Margin">
+    @foreach (var block in _blocks)
+    {
+        @switch (block)
+        {
+            case HeadingBlock heading:
+                @RenderInline(heading.Inlines, ResolveHeadingSize(heading.Level), ResolvedHeadingColor, textAlign: TextAlign)
+                break;
+
+            case ParagraphBlock paragraph:
+                @RenderInline(paragraph.Inlines, FontSize, ResolvedBodyColor, textAlign: TextAlign)
+                break;
+
+            case QuoteBlock quote:
+                <YogaView Direction="Yoga.YGFlexDirection.YGFlexDirectionRow" AlignItems="stretch" Gap="8" AlignSelf="stretch">
+                    <YogaView Width="3" Background="@ResolvedQuoteAccentColor" BorderRadius="2" Shrink="0" />
+                    @RenderInline(quote.Inlines, FontSize, ResolvedQuoteTextColor, textAlign: TextAlign)
+                </YogaView>
+                break;
+
+            case UnorderedListBlock unordered:
+                @for (var i = 0; i < unordered.Items.Count; i++)
+                {
+                    var item = unordered.Items[i];
+                    <YogaView Direction="Yoga.YGFlexDirection.YGFlexDirectionRow" AlignItems="flex-start" Gap="8" AlignSelf="stretch">
+                        <YogaText FontSize="@FontSize" Color="@ResolvedBodyColor" TextAlign="left" CenterText="false" Shrink="0">•
+                        </YogaText>
+                        @RenderInline(item, FontSize, ResolvedBodyColor, textAlign: TextAlign)
+                    </YogaView>
+                }
+                break;
+
+            case OrderedListBlock ordered:
+                @for (var i = 0; i < ordered.Items.Count; i++)
+                {
+                    var item = ordered.Items[i];
+                    var displayIndex = i + 1;
+                    <YogaView Direction="Yoga.YGFlexDirection.YGFlexDirectionRow" AlignItems="flex-start" Gap="8" AlignSelf="stretch">
+                        <YogaText FontSize="@FontSize" Color="@ResolvedBodyColor" TextAlign="left" CenterText="false" Shrink="0">
+                            @($"{displayIndex}.")</YogaText>
+                            @RenderInline(item, FontSize, ResolvedBodyColor, textAlign: TextAlign)
+                        </YogaView>
+                    }
+                    break;
+                }
+        }
+    </YogaView>
+
+@code {
+    private static readonly Regex HeadingRegex = new("^(#{1,6})\\s+(.+)$", RegexOptions.Compiled);
+    private static readonly Regex OrderedListRegex = new("^\\s*\\d+\\.\\s+(.+)$", RegexOptions.Compiled);
+    private static readonly Regex UnorderedListRegex = new("^\\s*[-*+]\\s+(.+)$", RegexOptions.Compiled);
+    private static readonly Regex LinkRegex = new("\\[(?<label>[^\\]]+)\\]\\((?<url>[^)\\s]+)\\)", RegexOptions.Compiled);
+    private static readonly Regex WrapTokenRegex = new("\\S+\\s*|\\s+", RegexOptions.Compiled);
+
+    private readonly List<Block> _blocks = [];
+
+    [CascadingParameter]
+    public Scheme<uint>? Theme { get; set; }
+
+    [Parameter]
+    public string? Text { get; set; }
+
+    [Parameter]
+    public float FontSize { get; set; } = 16;
+
+    [Parameter]
+    public float Gap { get; set; } = 10;
+
+    [Parameter]
+    public string? Margin { get; set; }
+
+    [Parameter]
+    public string TextAlign { get; set; } = "left";
+
+    [Parameter]
+    public string? HeadingColor { get; set; }
+
+    [Parameter]
+    public string? BodyColor { get; set; }
+
+    [Parameter]
+    public string? QuoteAccentColor { get; set; }
+
+    [Parameter]
+    public string? QuoteTextColor { get; set; }
+
+    [Parameter]
+    public string? LinkColor { get; set; }
+
+    [Parameter]
+    public float BoldScale { get; set; } = 1.12f;
+
+    [Parameter]
+    public EventCallback<string> OnLinkClick { get; set; }
+
+    private string ResolvedHeadingColor => HeadingColor ?? Theme?.OnSurface.ToHexColor() ?? "#111827";
+    private string ResolvedBodyColor => BodyColor ?? Theme?.OnSurfaceVariant.ToHexColor() ?? "#374151";
+    private string ResolvedQuoteAccentColor => QuoteAccentColor ?? Theme?.OutlineVariant.ToHexColor() ?? "#9ca3af";
+    private string ResolvedQuoteTextColor => QuoteTextColor ?? Theme?.OnSurfaceVariant.ToHexColor() ?? "#4b5563";
+    private string ResolvedLinkColor => LinkColor ?? Theme?.Primary.ToHexColor() ?? "#2563eb";
+
+    protected override void OnParametersSet()
+    {
+        _blocks.Clear();
+        _blocks.AddRange(ParseBlocks(Text));
+    }
+
+    private RenderFragment RenderInline(IReadOnlyList<InlineToken> tokens, float fontSize, string textColor, string
+textAlign = "left")
+    {
+        return builder =>
+        {
+            var seq = 0;
+            builder.OpenComponent<YogaView>(seq++);
+            builder.AddAttribute(seq++, nameof(YogaView.Direction), YGFlexDirection.YGFlexDirectionRow);
+            builder.AddAttribute(seq++, nameof(YogaView.Wrap), "wrap");
+            builder.AddAttribute(seq++, nameof(YogaView.AlignItems), "center");
+            builder.AddAttribute(seq++, nameof(YogaView.AlignSelf), "stretch");
+            builder.AddAttribute(seq++, nameof(YogaView.Gap), 0f);
+
+            builder.AddAttribute(seq++, nameof(YogaView.ChildContent), (RenderFragment)(contentBuilder =>
+            {
+                var childSeq = 0;
+                foreach (var token in tokens)
+                {
+                    if (token.IsLink && !string.IsNullOrWhiteSpace(token.Url) && OnLinkClick.HasDelegate)
+                    {
+                        contentBuilder.OpenComponent<YogaClickableView>(childSeq++);
+                        contentBuilder.AddAttribute(childSeq++, nameof(YogaClickableView.OnClickAction), (Action)(() =>
+HandleLinkClick(token.Url!)));
+                        contentBuilder.AddAttribute(childSeq++, nameof(YogaClickableView.ChildContent), (RenderFragment)(clickBuilder =>
+                        {
+                            RenderTextToken(clickBuilder, ref childSeq, token.Text, fontSize * token.FontScale, ResolvedLinkColor, textAlign);
+                        }));
+                        contentBuilder.CloseComponent();
+                    }
+                    else
+                    {
+                        var color = token.IsLink ? ResolvedLinkColor : textColor;
+                        RenderTextToken(contentBuilder, ref childSeq, token.Text, fontSize * token.FontScale, color, textAlign);
+                    }
+                }
+            }));
+
+            builder.CloseComponent();
+        };
+    }
+
+    private static void RenderTextToken(RenderTreeBuilder builder, ref int seq, string text, float fontSize, string color,
+string textAlign)
+    {
+        builder.OpenComponent<YogaText>(seq++);
+        builder.AddAttribute(seq++, nameof(YogaText.FontSize), fontSize);
+        builder.AddAttribute(seq++, nameof(YogaText.Color), color);
+        builder.AddAttribute(seq++, nameof(YogaText.TextAlign), textAlign);
+        builder.AddAttribute(seq++, nameof(YogaText.CenterText), false);
+        builder.AddAttribute(seq++, nameof(YogaText.ChildContent), (RenderFragment)(textBuilder =>
+        {
+            textBuilder.AddContent(0, text);
+        }));
+        builder.CloseComponent();
+    }
+
+    private void HandleLinkClick(string url)
+    {
+        _ = OnLinkClick.InvokeAsync(url);
+    }
+
+    private static float ResolveHeadingSize(int level)
+    {
+        return level switch
+        {
+            1 => 34,
+            2 => 30,
+            3 => 26,
+            4 => 22,
+            5 => 18,
+            _ => 16,
+        };
+    }
+
+    private IEnumerable<Block> ParseBlocks(string? source)
+    {
+        if (string.IsNullOrWhiteSpace(source))
+        {
+            yield break;
+        }
+
+        var lines = source
+            .Replace("\r\n", "\n", StringComparison.Ordinal)
+            .Replace('\r', '\n')
+            .Split('\n');
+
+        var index = 0;
+        while (index < lines.Length)
+        {
+            if (string.IsNullOrWhiteSpace(lines[index]))
+            {
+                index++;
+                continue;
+            }
+
+            var trimmed = lines[index].Trim();
+
+            var headingMatch = HeadingRegex.Match(trimmed);
+            if (headingMatch.Success)
+            {
+                var level = headingMatch.Groups[1].Value.Length;
+                var text = headingMatch.Groups[2].Value.Trim();
+                yield return new HeadingBlock(level, ParseInlineTokens(text));
+                index++;
+                continue;
+            }
+
+            if (trimmed.StartsWith('>'))
+            {
+                var quoteBuilder = new StringBuilder();
+                while (index < lines.Length)
+                {
+                    var quoteLine = lines[index].Trim();
+                    if (!quoteLine.StartsWith('>'))
+                    {
+                        break;
+                    }
+
+                    if (quoteBuilder.Length > 0)
+                    {
+                        quoteBuilder.Append(' ');
+                    }
+
+                    quoteBuilder.Append(quoteLine.TrimStart('>', ' ').Trim());
+                    index++;
+                }
+
+                yield return new QuoteBlock(ParseInlineTokens(quoteBuilder.ToString()));
+                continue;
+            }
+
+            var unorderedMatch = UnorderedListRegex.Match(lines[index]);
+            if (unorderedMatch.Success)
+            {
+                var items = new List<IReadOnlyList<InlineToken>>();
+                while (index < lines.Length)
+                {
+                    var itemMatch = UnorderedListRegex.Match(lines[index]);
+                    if (!itemMatch.Success)
+                    {
+                        break;
+                    }
+
+                    items.Add(ParseInlineTokens(itemMatch.Groups[1].Value.Trim()));
+                    index++;
+                }
+
+                yield return new UnorderedListBlock(items);
+                continue;
+            }
+
+            var orderedMatch = OrderedListRegex.Match(lines[index]);
+            if (orderedMatch.Success)
+            {
+                var items = new List<IReadOnlyList<InlineToken>>();
+                while (index < lines.Length)
+                {
+                    var itemMatch = OrderedListRegex.Match(lines[index]);
+                    if (!itemMatch.Success)
+                    {
+                        break;
+                    }
+
+                    items.Add(ParseInlineTokens(itemMatch.Groups[1].Value.Trim()));
+                    index++;
+                }
+
+                yield return new OrderedListBlock(items);
+                continue;
+            }
+
+            var paragraphBuilder = new StringBuilder();
+            while (index < lines.Length)
+            {
+                var paragraphLine = lines[index];
+                if (string.IsNullOrWhiteSpace(paragraphLine))
+                {
+                    break;
+                }
+
+                var paragraphTrimmed = paragraphLine.Trim();
+                if (HeadingRegex.IsMatch(paragraphTrimmed)
+                    || paragraphTrimmed.StartsWith('>')
+                    || UnorderedListRegex.IsMatch(paragraphLine)
+                    || OrderedListRegex.IsMatch(paragraphLine))
+                {
+                    break;
+                }
+
+                if (paragraphBuilder.Length > 0)
+                {
+                    paragraphBuilder.Append(' ');
+                }
+
+                paragraphBuilder.Append(paragraphTrimmed);
+                index++;
+            }
+
+            if (paragraphBuilder.Length > 0)
+            {
+                yield return new ParagraphBlock(ParseInlineTokens(paragraphBuilder.ToString()));
+            }
+        }
+    }
+
+    private IReadOnlyList<InlineToken> ParseInlineTokens(string input)
+    {
+        var tokens = new List<InlineToken>();
+
+        if (string.IsNullOrWhiteSpace(input))
+        {
+            return tokens;
+        }
+
+        var current = new StringBuilder();
+        var isBold = false;
+        var index = 0;
+
+        while (index < input.Length)
+        {
+            if (IsStrongMarker(input, index))
+            {
+                FlushBufferedText(tokens, current, isBold);
+                isBold = !isBold;
+                index += 2;
+                continue;
+            }
+
+            var linkMatch = LinkRegex.Match(input, index);
+            if (linkMatch.Success && linkMatch.Index == index)
+            {
+                FlushBufferedText(tokens, current, isBold);
+
+                var label = linkMatch.Groups["label"].Value;
+                var url = linkMatch.Groups["url"].Value.Trim();
+                if (!string.IsNullOrWhiteSpace(label) && !string.IsNullOrWhiteSpace(url))
+                {
+                    foreach (var linkToken in TokenizeByWrap(label, true, url, isBold))
+                    {
+                        tokens.Add(linkToken);
+                    }
+                }
+
+                index += linkMatch.Length;
+                continue;
+            }
+
+            current.Append(input[index]);
+            index++;
+        }
+
+        FlushBufferedText(tokens, current, isBold);
+        return tokens;
+    }
+
+    private static bool IsStrongMarker(string input, int index)
+    {
+        if (index + 1 >= input.Length)
+        {
+            return false;
+        }
+
+        var a = input[index];
+        var b = input[index + 1];
+        return (a == '*' && b == '*') || (a == '_' && b == '_');
+    }
+
+    private void FlushBufferedText(List<InlineToken> tokens, StringBuilder buffer, bool isBold)
+    {
+        if (buffer.Length == 0)
+        {
+            return;
+        }
+
+        var text = buffer.ToString();
+        buffer.Clear();
+
+        foreach (var token in TokenizeByWrap(text, false, null, isBold))
+        {
+            tokens.Add(token);
+        }
+    }
+
+    private IEnumerable<InlineToken> TokenizeByWrap(string text, bool isLink, string? url, bool isBold)
+    {
+        var normalized = NormalizeInlineText(text);
+        if (string.IsNullOrWhiteSpace(normalized))
+        {
+            yield break;
+        }
+
+        var scale = isBold ? BoldScale : 1f;
+
+        foreach (Match match in WrapTokenRegex.Matches(normalized))
+        {
+            if (!string.IsNullOrEmpty(match.Value))
+            {
+                yield return new InlineToken(match.Value, isLink, url, scale);
+            }
+        }
+    }
+
+    private static string NormalizeInlineText(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return string.Empty;
+        }
+
+        return value.Replace("\r", "", StringComparison.Ordinal);
+    }
+
+    private abstract record Block;
+    private sealed record HeadingBlock(int Level, IReadOnlyList<InlineToken> Inlines) : Block;
+    private sealed record ParagraphBlock(IReadOnlyList<InlineToken> Inlines) : Block;
+    private sealed record QuoteBlock(IReadOnlyList<InlineToken> Inlines) : Block;
+    private sealed record UnorderedListBlock(IReadOnlyList<IReadOnlyList<InlineToken>> Items) : Block;
+    private sealed record OrderedListBlock(IReadOnlyList<IReadOnlyList<InlineToken>> Items) : Block;
+
+    private sealed record InlineToken(string Text, bool IsLink, string? Url = null, float FontScale = 1f);
+}

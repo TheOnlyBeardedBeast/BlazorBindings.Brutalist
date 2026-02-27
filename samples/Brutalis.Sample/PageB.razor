@@ -1,0 +1,70 @@
+@page "/page-b"
+@using BlazorBindings.Brutalist.Elements
+@using Yoga
+@inject BlazorBindings.Brutalist.AnimationScheduler AnimationScheduler
+@implements IDisposable
+
+<YogaView Direction="YGFlexDirection.YGFlexDirectionColumn" Gap="10" Background="#ffffff" AlignItems="stretch" MinWidth="0" MinHeight="0" Grow="1">
+    <YogaText FontSize="32" TextAlign="left" Color="#111111">Page B</YogaText>
+    <YogaText WrapText FontSize="16" TextAlign="left" Color="#555555" AlignSelf="stretch">Animation demo using AnimationScheduler (ping-pong slide + color blend).</YogaText>
+
+    <YogaView Height="360" BorderWidth="1" BorderColor="#dddddd" BorderRadius="12" Padding="12" Background="#fafafa">
+        <YogaView
+            Width="90"
+            Height="90"
+            BorderRadius="16"
+            Background="@AnimatedColor"
+            Margin="@AnimatedMargin" />
+    </YogaView>
+
+    <YogaText FontSize="14" TextAlign="left" Color="#666666">Progress: @Math.Round(_progress * 100f, 0)%</YogaText>
+</YogaView>
+
+@code {
+    private IDisposable? _animation;
+    private bool _forward = true;
+    private float _progress;
+
+    private string AnimatedMargin => $"{12f + (_progress * 220f)} 0 0 0";
+    private string AnimatedColor => LerpColor("#7c3aed", "#06b6d4", _progress);
+
+    protected override void OnInitialized()
+    {
+        StartAnimation();
+    }
+
+    private void StartAnimation()
+    {
+        _animation?.Dispose();
+        _animation = AnimationScheduler.Animate(
+            durationSeconds: 1.25f,
+            easing: BlazorBindings.Brutalist.AnimationEasings.EaseInOutQuad,
+            update: t =>
+            {
+                _progress = _forward ? t : 1f - t;
+                _ = InvokeAsync(StateHasChanged);
+            },
+            completed: () =>
+            {
+                _forward = !_forward;
+                StartAnimation();
+            });
+    }
+
+    private static string LerpColor(string fromHex, string toHex, float t)
+    {
+        var from = SkiaSharp.SKColor.Parse(fromHex);
+        var to = SkiaSharp.SKColor.Parse(toHex);
+
+        var r = (byte)(from.Red + ((to.Red - from.Red) * t));
+        var g = (byte)(from.Green + ((to.Green - from.Green) * t));
+        var b = (byte)(from.Blue + ((to.Blue - from.Blue) * t));
+
+        return $"#{r:X2}{g:X2}{b:X2}";
+    }
+
+    public void Dispose()
+    {
+        _animation?.Dispose();
+    }
+}

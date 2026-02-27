@@ -13,7 +13,7 @@ public abstract class NativeComponentRenderer
     : Renderer(serviceProvider, loggerFactory)
 {
     private readonly Dictionary<int, NativeComponentAdapter> _componentIdToAdapter = [];
-    private readonly List<(int Id, IComponent Component)> _rootComponents = [];
+    public readonly List<(int Id, IComponent Component)> _rootComponents = [];
     private ElementManager _elementManager;
 
     protected virtual ElementManager CreateNativeControlManager() => new();
@@ -62,6 +62,9 @@ public abstract class NativeComponentRenderer
                     Name = $"RootAdapter attached to {parent.GetType().FullName}",
                 };
 
+                Console.WriteLine(rootAdapter.Name);
+                Console.WriteLine(component.GetType().Name);
+
                 _componentIdToAdapter[componentId] = rootAdapter;
 
                 var parameterView = parameters?.Count > 0 ? ParameterView.FromDictionary(parameters) : ParameterView.Empty;
@@ -89,22 +92,32 @@ public abstract class NativeComponentRenderer
     protected override Task UpdateDisplayAsync(in RenderBatch renderBatch)
     {
         HashSet<NativeComponentAdapter> adaptersWithPendingEdits = [];
-
+        Console.WriteLine("#1");
         var numUpdatedComponents = renderBatch.UpdatedComponents.Count;
+        Console.WriteLine("#2");
         for (var componentIndex = 0; componentIndex < numUpdatedComponents; componentIndex++)
         {
+            Console.WriteLine("#3");
             var updatedComponent = renderBatch.UpdatedComponents.Array[componentIndex];
 
             if (updatedComponent.Edits.Count > 0)
             {
+                Console.WriteLine("#3.1");
                 var adapter = _componentIdToAdapter[updatedComponent.ComponentId];
                 adapter.ApplyEdits(updatedComponent.ComponentId, updatedComponent.Edits, renderBatch, adaptersWithPendingEdits);
             }
         }
-
+        Console.WriteLine("#4");
         foreach (var adapter in adaptersWithPendingEdits.OrderByDescending(a => a.DeepLevel))
             adapter.ApplyPendingEdits();
 
+        // TODO: Call the render methods here
+        // foreach (var adapter in adaptersWithPendingEdits)
+        // {
+        //     CallRenderRecursively(adapter._targetElement);
+        // }
+
+        Console.WriteLine("#5");
         var numDisposedComponents = renderBatch.DisposedComponentIDs.Count;
         for (var i = 0; i < numDisposedComponents; i++)
         {
@@ -115,6 +128,7 @@ public abstract class NativeComponentRenderer
             }
         }
 
+        Console.WriteLine("#6");
         return Task.CompletedTask;
     }
 

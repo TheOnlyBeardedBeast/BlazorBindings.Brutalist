@@ -1,0 +1,16 @@
+@page "/"
+@page "/home"
+
+<YogaWindow Background="#f3f4f6" Padding="36" Direction="Yoga.YGFlexDirection.YGFlexDirectionColumn" Gap="16">
+    <YogaText FontSize="42" Color="#111827" TextAlign="left">Home</YogaText>
+
+    <YogaView Background="#ffffff" BorderRadius="16" Padding="20" Gap="10">
+        <YogaText FontSize="20" Color="#1f2937" TextAlign="left">Rendered from a web endpoint</YogaText>
+        <YogaText FontSize="16" Color="#4b5563" TextAlign="left">
+            Open /home and this endpoint returns image/png.
+        </YogaText>
+        <YogaText FontSize="16" Color="#4b5563" TextAlign="left">
+            Try /about?w=1000&h=500
+        </YogaText>
+    </YogaView>
+</YogaWindow>

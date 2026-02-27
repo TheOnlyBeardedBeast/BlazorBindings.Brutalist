@@ -1,0 +1,29 @@
+@page "/page-a"
+@using BlazorBindings.Brutalist.Elements
+@using Yoga
+
+<YogaView Direction="YGFlexDirection.YGFlexDirectionColumn" Gap="10" Background="#ffffff" AlignItems="stretch"
+          MinWidth="0" MinHeight="0" Grow="1">
+    <YogaText Shrink="0" FontSize="32" TextAlign="left" Color="#111111">Page A</YogaText>
+    <YogaText Shrink="0" WrapText FontSize="16" TextAlign="left" Color="#555555" AlignSelf="stretch">Scrollable content
+        demo: use mouse wheel over the grid when it overflows.</YogaText>
+        <YogaView Shrink="0" AlignSelf="stretch" BorderWidth="1" BorderColor="#dddddd" BorderRadius="10" Overflow="hidden"
+                  Background="#f3f4f6" Height="400">
+            <YogaImage Shrink="0" Grow="0" Url="https://picsum.photos/id/1025/900/500" Fit="Contain" />
+        </YogaView>
+        <YogaScrollableView Grow="1" AlignSelf="stretch" MinWidth="0" BorderWidth="1" BorderColor="#dddddd"
+                            BorderRadius="10" Padding="10" Background="#fafafa">
+            <YogaView Wrap="wrap" Gap="10" Direction="YGFlexDirection.YGFlexDirectionRow" AlignSelf="stretch" MinWidth="0">
+                <YogaView Width="250" Height="250" Background="#000000" />
+                <YogaView Width="250" Height="250" Background="#000000" />
+                <YogaView Width="250" Height="250" Background="#000000" />
+                <YogaView Width="250" Height="250" Background="#000000" />
+                <YogaView Width="250" Height="250" Background="#000000" />
+                <YogaView Width="250" Height="250" Background="#000000" />
+                <YogaView Width="250" Height="250" Background="#000000" />
+                <YogaView Width="250" Height="250" Background="#000000" />
+                <YogaView Width="250" Height="250" Background="#000000" />
+                <YogaView Width="250" Height="250" Background="#000000" />
+            </YogaView>
+        </YogaScrollableView>
+    </YogaView>

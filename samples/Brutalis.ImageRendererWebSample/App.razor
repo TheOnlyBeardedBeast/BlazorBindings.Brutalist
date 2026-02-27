@@ -1,0 +1,13 @@
+@inject NavigationManager Navigation
+
+<Router AppAssembly="@typeof(App).Assembly">
+    <Found Context="routeData">
+        <RouteView RouteData="@routeData" @key="Navigation.Uri" />
+    </Found>
+    <NotFound>
+        <YogaWindow Background="#ffffff" Padding="40" Direction="Yoga.YGFlexDirection.YGFlexDirectionColumn" Gap="8">
+            <YogaText FontSize="28" Color="#111827" TextAlign="left">404</YogaText>
+            <YogaText FontSize="16" Color="#6b7280" TextAlign="left">Route not found.</YogaText>
+        </YogaWindow>
+    </NotFound>
+</Router>
