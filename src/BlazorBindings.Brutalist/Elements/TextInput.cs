@@ -105,6 +105,13 @@ public class YogaTextInput : YogaView, IDisposable
         var isEmpty = string.IsNullOrEmpty(_currentValue);
         var textToDraw = isEmpty ? (Placeholder ?? string.Empty) : _currentValue;
 
+        using var font = new SKFont
+        {
+            Size = FontSize ?? 16f,
+        };
+
+        var scrollOffset = CalculateScrollOffset(font, textBounds);
+
         using var paint = new SKPaint
         {
             Style = SKPaintStyle.Fill,
@@ -114,15 +121,13 @@ public class YogaTextInput : YogaView, IDisposable
                 : (string.IsNullOrWhiteSpace(Color) ? SKColors.Black : SKColor.Parse(Color)),
         };
 
-        using var font = new SKFont
-        {
-            Size = FontSize ?? 16f,
-        };
-
         var lineHeight = font.Metrics.Descent - font.Metrics.Ascent;
         var baseline = textBounds.Top + ((textBounds.Height - lineHeight) / 2f) - font.Metrics.Ascent;
 
-        canvas.DrawText(textToDraw, textBounds.Left, baseline, SKTextAlign.Left, font, paint);
+        canvas.Save();
+        canvas.ClipRect(textBounds);
+        canvas.DrawText(textToDraw, textBounds.Left + scrollOffset, baseline, SKTextAlign.Left, font, paint);
+        canvas.Restore();
     }
 
     private void RenderCaret(SKCanvas canvas, SKRect textBounds)
@@ -137,12 +142,14 @@ public class YogaTextInput : YogaView, IDisposable
             Size = FontSize ?? 16f,
         };
 
+        var scrollOffset = CalculateScrollOffset(font, textBounds);
+
         var lineHeight = font.Metrics.Descent - font.Metrics.Ascent;
         var baseline = textBounds.Top + ((textBounds.Height - lineHeight) / 2f) - font.Metrics.Ascent;
 
         var _caretText = _currentValue.Substring(0, _currentValue.Length - _caretOffset);
         var textWidth = font.MeasureText(_caretText);
-        var caretX = (textBounds.Left + textWidth + 1f);
+        var caretX = textBounds.Left + scrollOffset + textWidth + 1f;
         var caretTop = baseline + font.Metrics.Ascent;
         var caretBottom = baseline + font.Metrics.Descent;
 
@@ -154,7 +161,40 @@ public class YogaTextInput : YogaView, IDisposable
             Color = string.IsNullOrWhiteSpace(Color) ? SKColors.Black : SKColor.Parse(Color),
         };
 
+        canvas.Save();
+        canvas.ClipRect(textBounds);
         canvas.DrawLine(caretX, caretTop, caretX, caretBottom, caretPaint);
+        canvas.Restore();
+    }
+
+    private float CalculateScrollOffset(SKFont font, SKRect textBounds)
+    {
+        if (string.IsNullOrEmpty(_currentValue))
+        {
+            return 0f;
+        }
+
+        // Calculate caret position in the text
+        var caretText = _currentValue.Substring(0, _currentValue.Length - _caretOffset);
+        var caretPixelPosition = font.MeasureText(caretText);
+
+        // Padding for visual feedback
+        const float caretPadding = 10f;
+        var visibleWidth = textBounds.Width - caretPadding;
+
+        // If caret is beyond the right edge, scroll left
+        if (caretPixelPosition > visibleWidth)
+        {
+            return -(caretPixelPosition - visibleWidth);
+        }
+
+        // If caret is before the left edge, scroll right
+        if (caretPixelPosition < 0)
+        {
+            return -caretPixelPosition;
+        }
+
+        return 0f;
     }
 
     protected override bool HandleTextInput(string text)
@@ -180,40 +220,43 @@ public class YogaTextInput : YogaView, IDisposable
 
     protected override bool HandleKeyDown(Keys key)
     {
-        if (key == Keys.Left)
+        return key switch
         {
-            if (_caretOffset < _currentValue.Length)
-            {
-                _caretOffset++;
-                ShowCaretNow();
-                return false;
-            }
-        }
-        else if (key == Keys.Right)
-        {
-            if (_caretOffset > 0)
-            {
-                _caretOffset--;
-                ShowCaretNow();
-                return false;
-            }
-        }
+            Keys.Left => HandleLeftArrow(),
+            Keys.Right => HandleRightArrow(),
+            Keys.Backspace => HandleBackspace(),
+            Keys.Delete => HandleDelete(),
+            _ => false,
+        };
+    }
 
-        if (key != Keys.Backspace)
+    private bool HandleLeftArrow()
+    {
+        if (_caretOffset < _currentValue.Length)
         {
+            _caretOffset++;
+            ShowCaretNow();
             return false;
         }
 
+        return false;
+    }
 
-
-        if (string.IsNullOrEmpty(_currentValue))
+    private bool HandleRightArrow()
+    {
+        if (_caretOffset > 0)
         {
-            return true;
+            _caretOffset--;
+            ShowCaretNow();
+            return false;
         }
 
-        var info = new StringInfo(_currentValue);
-        var textElements = info.LengthInTextElements;
-        if (textElements <= 0)
+        return false;
+    }
+
+    private bool HandleBackspace()
+    {
+        if (string.IsNullOrEmpty(_currentValue))
         {
             return true;
         }
@@ -225,6 +268,28 @@ public class YogaTextInput : YogaView, IDisposable
         }
 
         var newValue = _currentValue.Remove(deletionIndex, 1);
+        SetValue(newValue);
+        ShowCaretNow();
+        return true;
+    }
+
+    private bool HandleDelete()
+    {
+        if (string.IsNullOrEmpty(_currentValue))
+        {
+            return true;
+        }
+
+        var deletionIndex = _currentValue.Length - _caretOffset;
+        if (deletionIndex >= _currentValue.Length)
+        {
+            return true;
+        }
+
+        var newValue = _currentValue.Remove(deletionIndex, 1);
+
+        _caretOffset = Math.Max(0, _caretOffset - 1);
+
         SetValue(newValue);
         ShowCaretNow();
         return true;
