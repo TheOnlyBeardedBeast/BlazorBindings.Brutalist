@@ -5,30 +5,29 @@
                    JustifyContent="@JustifyContent" OutlineColor="@(IsFocused ? @Theme?.Primary.ToHexColor() : null)"
                    OutlineWidth="@((IsFocused ? 3 : 0).ToString())" OutlineOffset="2" BorderColor="@ResolvedVariantBorderColor"
                    BorderWidth="@ResolvedVariantBorderWidth" Direction="Yoga.YGFlexDirection.YGFlexDirectionRow" Gap="8"
-                   AlignItems="@AlignItems">
+                   AlignItems="@AlignItems" Disabled="@Disabled">
     @if (HeadIcon.HasValue)
     {
         <YogaView Shrink="0">
-            <PhosphorIcon Icon="@HeadIcon.Value" Size="24" Color="@ResolvedColor" />
+            <PhosphorIcon Icon="@HeadIcon.Value" Size="@ResolvedIconSize" Color="@ResolvedColor" />
         </YogaView>
     }
-    <YogaText Color="@ResolvedColor" FontSize="@ResolvedFontSize">
+    <YogaText Cursor="@(Disabled ? "default" : null)" Color="@ResolvedColor" FontSize="@ResolvedFontSize">
         @Label
     </YogaText>
     @if (TailIcon.HasValue)
     {
         <YogaView Shrink="0">
-            <PhosphorIcon Icon="@TailIcon.Value" Size="24" Color="@ResolvedColor" />
+            <PhosphorIcon Icon="@TailIcon.Value" Size="@ResolvedIconSize" Color="@ResolvedColor" />
         </YogaView>
     }
 </YogaClickableView>
 
 @code
 {
+    private static readonly byte[] IconSizes = { 20, 20, 24, 32, 40 };
     private static readonly byte[] Sizes = { 32, 40, 56, 96, 136 };
-
     private static readonly byte[] Radii = { 16, 20, 28, 48, 68 };
-
     private static readonly byte[] Paddings = { 12, 16, 24, 48, 64 };
 
     private static readonly byte[] Fontsizes = { 14, 14, 16, 18, 24 };
@@ -81,18 +80,27 @@
     [Parameter]
     public string? Size { get; set; } = "M";
 
+    [Parameter]
+    public bool Disabled { get; set; } = false;
+
     private bool IsFocused = false;
 
     private void HandleFocus()
     {
-        OnFocus?.InvokeAsync(null);
-        IsFocused = true;
+        if (!Disabled)
+        {
+            OnFocus?.InvokeAsync(null);
+            IsFocused = true;
+        }
     }
 
     private void HandleBlur()
     {
-        OnBlur?.InvokeAsync(null);
-        IsFocused = false;
+        if (!Disabled)
+        {
+            OnBlur?.InvokeAsync(null);
+            IsFocused = false;
+        }
     }
 
     private string SchemeMainColor => Tone switch
@@ -109,12 +117,14 @@
         _ => Theme?.OnPrimary.ToHexColor() ?? "#ffffff"
     };
 
-    private string ResolvedColor => Color ?? Variant switch
-    {
-        "Outlined" => SchemeMainColor,
-        "Text" => SchemeMainColor,
-        _ => SchemeOnColor
-    };
+    private string ResolvedColor => Disabled
+        ? (Theme?.Outline.ToHexColor() ?? "#000000")
+        : (Color ?? Variant switch
+        {
+            "Outlined" => SchemeMainColor,
+            "Text" => SchemeMainColor,
+            _ => SchemeOnColor
+        });
 
     private int ResolvedHeight => Height.HasValue ? (int)Height.Value : Size switch
     {
@@ -156,19 +166,31 @@
         _ => Fontsizes[2]
     };
 
+    private int ResolvedIconSize => Size switch
+    {
+        "XS" => IconSizes[0],
+        "S" => IconSizes[1],
+        "M" => IconSizes[2],
+        "L" => IconSizes[3],
+        "XL" => IconSizes[4],
+        _ => IconSizes[2]
+    };
+
     [Parameter]
     public string Variant { get; set; } = "Filled";
 
     [Parameter]
     public string Tone { get; set; } = "Primary";
 
-    private string? ResolvedVariantBackground => Variant switch
-    {
-        "Filled" => Background ?? SchemeMainColor,
-        "Outlined" => null,
-        "Text" => null,
-        _ => Background ?? SchemeMainColor
-    };
+    private string? ResolvedVariantBackground => Disabled
+        ? (Theme?.SurfaceDim.ToHexColor() ?? "#cccccc")
+        : (Variant switch
+        {
+            "Filled" => Background ?? SchemeMainColor,
+            "Outlined" => null,
+            "Text" => null,
+            _ => Background ?? SchemeMainColor
+        });
 
     public string? ResolvedVariantBorderWidth => Variant switch
     {
@@ -178,7 +200,7 @@
 
     public string? ResolvedVariantBorderColor => Variant switch
     {
-        "Outlined" => SchemeMainColor,
+        "Outlined" => Theme?.Outline.ToHexColor(),
         _ => null
     };
 }

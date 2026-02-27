@@ -16,6 +16,9 @@ public class YogaClickableView : YogaView, IDisposable
     [Parameter]
     public EventCallback OnBlur { get; set; }
 
+    [Parameter]
+    public bool Disabled { get; set; } = false;
+
     [Inject]
     protected InteractionState InteractionState { get; set; } = default!;
 
@@ -25,13 +28,27 @@ public class YogaClickableView : YogaView, IDisposable
     public override async Task SetParametersAsync(ParameterView parameters)
     {
         await base.SetParametersAsync(parameters);
+
+        // Prevent style cascading when disabled
+        if (Disabled)
+        {
+            StateHasChanged();
+        }
+
         EnsureSubscriptions();
     }
 
-    protected override bool IsInteractive => OnClickAction is not null || OnClick.HasDelegate;
+    protected override bool IsInteractive => !Disabled && (OnClickAction is not null || OnClick.HasDelegate);
+
+    protected override bool IsFocusable => !Disabled && IsInteractive;
 
     protected override bool HandleClick(SKPoint point)
     {
+        if (Disabled)
+        {
+            return false;
+        }
+
         var handled = false;
 
         if (OnClickAction is not null)
@@ -63,6 +80,11 @@ public class YogaClickableView : YogaView, IDisposable
 
     private void OnActiveElementChanged(Element? element)
     {
+        if (Disabled)
+        {
+            return;
+        }
+
         var focused = ReferenceEquals(element, this);
         if (_isFocused == focused)
         {
@@ -96,5 +118,6 @@ public class YogaClickableView : YogaView, IDisposable
 
         InteractionState.ActiveElementChanged -= OnActiveElementChanged;
         _subscriptionsInitialized = false;
+
     }
 }
