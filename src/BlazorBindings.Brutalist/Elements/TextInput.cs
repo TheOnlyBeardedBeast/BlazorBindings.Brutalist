@@ -46,6 +46,8 @@ public class YogaTextInput : YogaView, IDisposable
     private float _caretBlinkElapsed;
     private const float CaretBlinkIntervalSeconds = 0.5f;
 
+    private int _caretOffset = 0;
+
     public YogaTextInput()
     {
         unsafe
@@ -121,7 +123,8 @@ public class YogaTextInput : YogaView, IDisposable
             return;
         }
 
-        var textWidth = font.MeasureText(_currentValue);
+        var _caretText = _currentValue.Substring(0, _currentValue.Length - _caretOffset);
+        var textWidth = font.MeasureText(_caretText);
         var caretX = (textBounds.Left + textWidth + 1f);
         var caretTop = baseline + font.Metrics.Ascent;
         var caretBottom = baseline + font.Metrics.Descent;
@@ -150,13 +153,35 @@ public class YogaTextInput : YogaView, IDisposable
             return false;
         }
 
-        SetValue(_currentValue + filtered);
+        var insertionIndex = _currentValue.Length - _caretOffset;
+        var newValue = _currentValue.Insert(insertionIndex, filtered);
+
+        SetValue(newValue);
         ShowCaretNow();
         return true;
     }
 
     protected override bool HandleKeyDown(Keys key)
     {
+        if (key == Keys.Left)
+        {
+            if (_caretOffset < _currentValue.Length)
+            {
+                _caretOffset++;
+                ShowCaretNow();
+                return false;
+            }
+        }
+        else if (key == Keys.Right)
+        {
+            if (_caretOffset > 0)
+            {
+                _caretOffset--;
+                ShowCaretNow();
+                return false;
+            }
+        }
+
         if (key != Keys.Backspace)
         {
             return false;
@@ -176,7 +201,14 @@ public class YogaTextInput : YogaView, IDisposable
             return true;
         }
 
-        SetValue(info.SubstringByTextElements(0, textElements - 1));
+        var deletionIndex = _currentValue.Length - _caretOffset - 1;
+        if (deletionIndex < 0)
+        {
+            return true;
+        }
+
+        var newValue = _currentValue.Remove(deletionIndex, 1);
+        SetValue(newValue);
         ShowCaretNow();
         return true;
     }
@@ -260,6 +292,7 @@ public class YogaTextInput : YogaView, IDisposable
 
     private void SetValue(string value)
     {
+        Console.WriteLine($"Setting value: '{value}'");
         if (_currentValue == value)
         {
             return;
