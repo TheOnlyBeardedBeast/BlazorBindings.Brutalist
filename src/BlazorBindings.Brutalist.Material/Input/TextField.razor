@@ -1,0 +1,59 @@
+@using MaterialColorUtilities.Schemes
+
+<YogaClickableView Direction="Yoga.YGFlexDirection.YGFlexDirectionColumn" Background="@resolvedBackground"
+                   OnClickAction="FocusTextInput" BorderRadius="4 4 0 0">
+    <YogaView Padding="16 16 0 16">
+        <YogaText FontSize="12" Color="@resolvedColor" TextAlign="left">
+            @Label
+        </YogaText>
+    </YogaView>
+    @if (_isControlled)
+    {
+        <TextFieldBase Value="@Value" Placeholder="@Placeholder" @ref="textFieldRef" Padding="0 16" FontSize="16"
+                       ValueChanged="@ValueChanged" OnInput="@OnInput" IsPassword="@IsPassword" PasswordMask="@PasswordMask"
+                       BottomBorderColor="@CurrentTheme?.Primary.ToHexColor()" Color="@resolvedInputColor" />
+    }
+    else
+    {
+        <TextFieldBase Placeholder="@Placeholder" @ref="textFieldRef" Padding="0 16" FontSize="16" OnInput="@OnInput"
+                       IsPassword="@IsPassword" PasswordMask="@PasswordMask" ValueChanged="@ValueChanged"
+                       BottomBorderColor="@CurrentTheme?.Primary.ToHexColor()" Color="@resolvedInputColor" />
+    }
+</YogaClickableView>
+
+@code {
+    private TextFieldBase? textFieldRef;
+    private bool _isControlled;
+
+    public override async Task SetParametersAsync(ParameterView parameters)
+    {
+        _isControlled = parameters.TryGetValue<string>(nameof(Value), out _);
+        await base.SetParametersAsync(parameters);
+    }
+
+    [CascadingParameter]
+    public Scheme<uint>? CurrentTheme { get; set; }
+    [Parameter]
+    public string? Label { get; set; } = "Label";
+    [Parameter]
+    public string? Placeholder { get; set; } = "Placeholder";
+    [Parameter]
+    public string? Value { get; set; }
+    [Parameter]
+    public EventCallback<string> ValueChanged { get; set; }
+    [Parameter]
+    public EventCallback<string> OnInput { get; set; }
+    [Parameter]
+    public bool IsPassword { get; set; }
+    [Parameter]
+    public string PasswordMask { get; set; } = "•";
+
+    private void FocusTextInput()
+    {
+        textFieldRef?.Focus();
+    }
+
+    private string resolvedBackground => CurrentTheme?.SurfaceContainerHigh.ToHexColor() ?? "#FFFFFF";
+    private string resolvedColor => CurrentTheme?.OnSurfaceVariant.ToHexColor() ?? "#000000";
+    private string resolvedInputColor => CurrentTheme?.OnSurface.ToHexColor() ?? "#6200EE";
+}

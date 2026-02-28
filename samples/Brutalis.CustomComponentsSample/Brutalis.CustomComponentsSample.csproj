@@ -17,7 +17,7 @@
   <ItemGroup>
     <ProjectReference Include="../../src/BlazorBindings.Brutalist.Phosphor/BlazorBindings.Brutalist.Phosphor.csproj" />
     <ProjectReference Include="..\..\src\BlazorBindings.Brutalist\BlazorBindings.Brutalist.csproj" />
-    <ProjectReference Include="..\..\src\BlazorBindings.Brutalist.Components\BlazorBindings.Brutalist.Components.csproj" />
+    <ProjectReference Include="..\..\src\BlazorBindings.Brutalist.Material\BlazorBindings.Brutalist.Material.csproj" />
   </ItemGroup>
 
 </Project>

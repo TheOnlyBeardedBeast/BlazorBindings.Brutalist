@@ -1,0 +1,46 @@
+@using MaterialColorUtilities.Schemes
+@page "/richtexts"
+
+<YogaText Shrink="0" FontSize="28" Color="@CurrentTheme.OnBackground.ToHexColor()" TextAlign="left">
+    Button
+</YogaText>
+
+<BrutalistCard BorderRadius="12" Padding="16" Gap="12">
+    <YogaText FontSize="18" Color="@CurrentTheme.OnBackground.ToHexColor()" TextAlign="left">
+        RichText
+    </YogaText>
+    <YogaText FontSize="12" Color="@CurrentTheme.OnSurfaceVariant.ToHexColor()" TextAlign="left">
+        Renders markdown-like content with headings, quotes, lists, and clickable links.
+    </YogaText>
+    <RichText Text="@RichTextSample" OnLinkClick="HandleRichTextLinkClick" BoldScale="1.25f" />
+    <YogaText FontSize="12" Color="@CurrentTheme.OnSurfaceVariant.ToHexColor()" TextAlign="left" WrapText>
+        Last clicked link: @LastClickedLink
+    </YogaText>
+</BrutalistCard>
+
+@code {
+    [CascadingParameter]
+    public Scheme<uint> CurrentTheme { get; set; }
+
+    private static readonly string RichTextSample = string.Join("\n", [
+    "# Rich Text Demo",
+        "This is a normal sentence with **larger bold text** in the middle and a [link](https://github.com/dreamescaper/BlazorBindings.Maui).",
+        string.Empty,
+        "> Quotes are rendered as emphasized callouts.",
+        string.Empty,
+        "- Unordered list item",
+        "- Another item with __bold emphasis__ and a [clickable link](https://learn.microsoft.com/aspnet/core/blazor/)",
+        string.Empty,
+        "1. Ordered item one",
+        "2. Ordered item two",
+        "3. Ordered item three with **inline emphasis**"
+]);
+
+    private string LastClickedLink = "(none)";
+
+    private void HandleRichTextLinkClick(string link)
+    {
+        LastClickedLink = link;
+    }
+
+}

@@ -1,0 +1,19 @@
+@using MaterialColorUtilities.Schemes
+<YogaView Margin="@Margin" Height="@ResolvedHeight" Width="@ResolvedWidth" Background="#E0E0E0" AlignSelf="stretch" />
+
+@code {
+    [CascadingParameter]
+    public Scheme<uint>? Theme { get; set; }
+
+    [Parameter]
+    public string? Margin { get; set; } = "8 16";
+
+    [Parameter]
+    public int Thickness { get; set; } = 1;
+
+    [Parameter]
+    public string Orientation { get; set; } = "horizontal";
+
+    private float? ResolvedHeight => Orientation == "horizontal" ? Thickness : null;
+    private float? ResolvedWidth => Orientation == "vertical" ? Thickness : null;
+}

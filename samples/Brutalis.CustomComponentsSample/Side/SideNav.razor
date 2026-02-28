@@ -1,0 +1,28 @@
+@inject NavigationManager Navigation
+
+<Drawer>
+    <ScrollableContent>
+        <Button Size="M" Label="Home" HeadIcon="@PhosphorIcons.HouseSimple" JustifyContent="start"
+                OnClick='@NavigateTo("/")' Variant="@GetButtonVariant("/")" />
+        <Button Size="M" Label="Buttons" HeadIcon="@PhosphorIcons.Command" JustifyContent="start"
+                Variant="@GetButtonVariant("/buttons")" OnClick='@NavigateTo("/buttons")' />
+        <Button Size="M" Label="Checkboxes" HeadIcon="@PhosphorIcons.CheckSquare" JustifyContent="start"
+                Variant="@GetButtonVariant("/checkboxes")" OnClick='@NavigateTo("/checkboxes")' />
+        <Button Size="M" Label="Richtext" HeadIcon="@PhosphorIcons.Article" JustifyContent="start"
+                Variant="@GetButtonVariant("/richtexts")" OnClick='@NavigateTo("/richtexts")' />
+        <Button Size="M" Label="Text Fields" HeadIcon="@PhosphorIcons.CursorText" JustifyContent="start"
+                Variant="@GetButtonVariant("/textfields")" OnClick='@NavigateTo("/textfields")' />
+        <Button Size="M" Label="Icons" HeadIcon="@PhosphorIcons.Star" JustifyContent="start"
+                Variant="@GetButtonVariant("/icons")" OnClick='@NavigateTo("/icons")' />
+        <Button Size="M" Label="Typography" HeadIcon="@PhosphorIcons.TextT" JustifyContent="start"
+                Variant="@GetButtonVariant("/typography")" OnClick='@NavigateTo("/typography")' />
+    </ScrollableContent>
+</Drawer>
+
+@code {
+    private Action NavigateTo(string path)
+        => () => Navigation.NavigateTo(path);
+
+    private string GetButtonVariant(string path)
+        => Navigation.Uri.EndsWith(path) ? "Filled" : "Text";
+}

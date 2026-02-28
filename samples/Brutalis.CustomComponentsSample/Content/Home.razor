@@ -1,0 +1,21 @@
+@page "/"
+
+<YogaScrollableView>
+    <YogaView Padding="24" Direction="Yoga.YGFlexDirection.YGFlexDirectionColumn" Gap="12" Grow="1">
+        <YogaText FontSize="28" TextAlign="left">Project Summary</YogaText>
+        <YogaText FontSize="14" TextAlign="left" WrapText>
+            BlazorBindings.Maui is a cross-platform UI project that combines Blazor component patterns with a custom
+            renderer stack (Yoga layout, Skia drawing, and OpenTK hosting).
+        </YogaText>
+
+        <BrutalistCard BorderRadius="12" Padding="16" Gap="8">
+            <YogaText FontSize="18" TextAlign="left">What this sample shows</YogaText>
+            <YogaText FontSize="14" TextAlign="left" WrapText>• Material-style components built with Brutalist
+                primitives</YogaText>
+                <YogaText FontSize="14" TextAlign="left" WrapText>• Client-side routing with reusable content pages
+                </YogaText>
+                <YogaText FontSize="14" TextAlign="left" WrapText>• Theming, interaction, and custom rendering behavior
+                </YogaText>
+            </BrutalistCard>
+        </YogaView>
+    </YogaScrollableView>

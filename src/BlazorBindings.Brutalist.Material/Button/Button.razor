@@ -12,9 +12,12 @@
             <PhosphorIcon Icon="@HeadIcon.Value" Size="@ResolvedIconSize" Color="@ResolvedColor" />
         </YogaView>
     }
-    <YogaText Cursor="@(Disabled ? "default" : null)" Color="@ResolvedColor" FontSize="@ResolvedFontSize">
-        @Label
-    </YogaText>
+    @if (!string.IsNullOrEmpty(Label))
+    {
+        <YogaText Cursor="@(Disabled ? "default" : null)" Color="@ResolvedColor" FontSize="@ResolvedFontSize">
+            @Label
+        </YogaText>
+    }
     @if (TailIcon.HasValue)
     {
         <YogaView Shrink="0">

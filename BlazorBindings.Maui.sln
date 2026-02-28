@@ -28,7 +28,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Brutalis.ImageRendererSampl
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Brutalis.ImageRendererWebSample", "samples\Brutalis.ImageRendererWebSample\Brutalis.ImageRendererWebSample.csproj", "{C7DF823E-DB6D-4FD0-B8D3-B0F75D7D9156}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlazorBindings.Brutalist.Components", "src\BlazorBindings.Brutalist.Components\BlazorBindings.Brutalist.Components.csproj", "{2F38F3A3-E47A-4F00-9BE3-2D580869519D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlazorBindings.Brutalist.Material", "src\BlazorBindings.Brutalist.Material\BlazorBindings.Brutalist.Material.csproj", "{2F38F3A3-E47A-4F00-9BE3-2D580869519D}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Brutalis.CustomComponentsSample", "samples\Brutalis.CustomComponentsSample\Brutalis.CustomComponentsSample.csproj", "{0E04E6C6-590E-40D6-92F3-C99B235B865F}"
 EndProject

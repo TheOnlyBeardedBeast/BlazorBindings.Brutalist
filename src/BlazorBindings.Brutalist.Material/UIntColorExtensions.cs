@@ -1,4 +1,4 @@
-namespace BlazorBindings.Brutalist.Components;
+namespace BlazorBindings.Brutalist.Material;
 
 public static class UIntColorExtensions
 {

@@ -1,0 +1,31 @@
+@using MaterialColorUtilities.Schemes
+@page "/checkboxes"
+
+<YogaText Shrink="0" FontSize="28" Color="@CurrentTheme.OnBackground.ToHexColor()" TextAlign="left">
+    Checkboxes
+</YogaText>
+
+<BrutalistCard BorderRadius="12" Padding="16" Gap="12">
+    <YogaText FontSize="18" Color="@CurrentTheme.OnBackground.ToHexColor()" TextAlign="left">
+        Checkbox
+    </YogaText>
+    <YogaText FontSize="12" Color="@CurrentTheme.OnSurfaceVariant.ToHexColor()" TextAlign="left">
+        Base checkbox with label, two-way binding, tone, and disabled state.
+    </YogaText>
+    <YogaView Direction="Yoga.YGFlexDirection.YGFlexDirectionColumn" Gap="10" AlignItems="flex-start">
+        <Checkbox Label="Accept terms" @bind-Checked="AcceptedTerms" />
+        <Checkbox Label="Enable analytics" Tone="Secondary" @bind-Checked="EnableAnalytics" />
+        <Checkbox Label="Disabled checked" Checked="true" Disabled="true" />
+        <Checkbox Label="Disabled unchecked" Checked="false" Disabled="true" />
+    </YogaView>
+    <YogaText FontSize="12" Color="@CurrentTheme.OnSurfaceVariant.ToHexColor()" TextAlign="left">
+        AcceptedTerms: @AcceptedTerms · EnableAnalytics: @EnableAnalytics
+    </YogaText>
+</BrutalistCard>
+
+@code {
+    [CascadingParameter]
+    public Scheme<uint> CurrentTheme { get; set; }
+    private bool AcceptedTerms;
+    private bool EnableAnalytics = true;
+}

@@ -1,0 +1,29 @@
+@using MaterialColorUtilities.Schemes
+@using global::Brutalist.Material.Typography
+
+<YogaText Ellipse="@Ellipse" FontSize="@resolvedFontSize" TextAlign="@TextAlign" Color="@resolvedColor">
+    @ChildContent
+</YogaText>
+
+@code {
+    [CascadingParameter]
+    public Scheme<uint>? CurrentTheme { get; set; }
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    [Parameter]
+    public MaterialFontSize FontSize { get; set; } = MaterialFontSize.BodyLarge;
+
+    [Parameter]
+    public string? Color { get; set; }
+
+    public string resolvedColor => Color ?? CurrentTheme?.OnBackground.ToHexColor() ?? "#000000";
+
+    [Parameter]
+    public string? TextAlign { get; set; } = "left";
+    private float resolvedFontSize => (float)FontSize;
+
+    [Parameter]
+    public bool Ellipse { get; set; }
+}

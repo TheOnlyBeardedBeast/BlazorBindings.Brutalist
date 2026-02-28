@@ -1,0 +1,33 @@
+@page "/textfields"
+@using MaterialColorUtilities.Schemes
+@using BlazorBindings.Brutalist.Material.Input
+
+
+<YogaText Shrink="0" FontSize="28" Color="@CurrentTheme.OnBackground.ToHexColor()" TextAlign="left">
+    Text Field
+</YogaText>
+
+
+<BrutalistCard BorderRadius="12" Padding="16" Gap="12">
+    <TextField Label="Name" Placeholder="Enter your name" ValueChanged="@OnNameInput" />
+    <YogaText Color="@CurrentTheme?.OnBackground.ToHexColor()">Name Value: @name</YogaText>
+    <TextField Label="Email" Placeholder="Enter your email" />
+    <TextField Label="Message" Placeholder="Enter your message" />
+    <TextField Label="Password" Placeholder="Enter your password" ValueChanged="@OnPasswordInput" IsPassword />
+    <YogaText Color="@CurrentTheme?.OnBackground.ToHexColor()">Password Value: @password</YogaText>
+</BrutalistCard>
+@code {
+    [CascadingParameter]
+    public Scheme<uint>? CurrentTheme { get; set; }
+    private string name = "";
+    private void OnNameInput(string value)
+    {
+        name = value;
+    }
+
+    private string password = "";
+    private void OnPasswordInput(string value)
+    {
+        password = value;
+    }
+}

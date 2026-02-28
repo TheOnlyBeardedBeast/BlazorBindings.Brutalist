@@ -1,0 +1,153 @@
+@page "/buttons"
+
+@using MaterialColorUtilities.Palettes
+@using MaterialColorUtilities.Schemes
+
+
+<YogaView Shrink="0">
+    <PhosphorIcon Icon="@PhosphorIcons.Acorn" Size="48" Color="@CurrentTheme.OnBackground.ToHexColor()" />
+    <YogaText Shrink="0" FontSize="28" Color="@CurrentTheme.OnBackground.ToHexColor()" TextAlign="left">
+        Button
+    </YogaText>
+    <YogaText Shrink="0" FontSize="14" Color="@CurrentTheme.OnSurfaceVariant.ToHexColor()" TextAlign="left">
+        A pressable element that triggers an action. Supports sizes, variants, and tones.
+    </YogaText>
+</YogaView>
+
+<YogaView Direction="Yoga.YGFlexDirection.YGFlexDirectionColumn" Gap="16" AlignItems="stretch">
+    <BrutalistCard BorderRadius="12" Padding="16" Gap="12">
+        <YogaText FontSize="18" Color="@CurrentTheme.OnBackground.ToHexColor()" TextAlign="left">
+            Size
+        </YogaText>
+        <YogaText FontSize="12" Color="@CurrentTheme.OnSurfaceVariant.ToHexColor()" TextAlign="left">
+            Use the Size parameter to control height, padding, border-radius and font size together.
+        </YogaText>
+        <YogaView Direction="Yoga.YGFlexDirection.YGFlexDirectionRow" Gap="8" Wrap="wrap" AlignItems="center">
+            <Button Size="XS" Label="XS" OnClick="Increment" />
+            <Button Size="S" Label="S" OnClick="Increment" />
+            <Button Size="M" Label="M" OnClick="Increment" />
+            <Button Size="L" Label="L" OnClick="Increment" />
+            <Button Size="XL" Label="XL" OnClick="Increment" />
+        </YogaView>
+        <YogaText FontSize="12" Color="@CurrentTheme.OnSurfaceVariant.ToHexColor()" TextAlign="left">
+            Clicked @Count times
+        </YogaText>
+    </BrutalistCard>
+    <BrutalistCard BorderRadius="12" Padding="16" Gap="12">
+        <YogaText FontSize="18" Color="@CurrentTheme.OnBackground.ToHexColor()" TextAlign="left">
+            Variant
+        </YogaText>
+        <YogaText FontSize="12" Color="@CurrentTheme.OnSurfaceVariant.ToHexColor()" TextAlign="left">
+            Three visual styles: Filled (default), Outlined, and Text.
+        </YogaText>
+        <YogaView Direction="Yoga.YGFlexDirection.YGFlexDirectionRow" Gap="8" Wrap="wrap" AlignItems="center">
+            <Button Variant="Filled" Label="Filled" OnClick="Increment" />
+            <Button Variant="Outlined" Label="Outlined" OnClick="Increment" />
+            <Button Variant="Text" Label="Text" OnClick="Increment" />
+        </YogaView>
+    </BrutalistCard>
+    <BrutalistCard BorderRadius="12" Padding="16" Gap="12">
+        <YogaText FontSize="18" Color="@CurrentTheme.OnBackground.ToHexColor()" TextAlign="left">
+            Tone
+        </YogaText>
+        <YogaText FontSize="12" Color="@CurrentTheme.OnSurfaceVariant.ToHexColor()" TextAlign="left">
+            Maps to Material You color roles: Primary, Secondary, and Tertiary.
+        </YogaText>
+        <YogaView Direction="Yoga.YGFlexDirection.YGFlexDirectionRow" Gap="8" Wrap="wrap" AlignItems="center">
+            <Button Tone="Primary" Variant="Filled" Label="Primary" OnClick="Increment" />
+            <Button Tone="Secondary" Variant="Filled" Label="Secondary" OnClick="Increment" />
+            <Button Tone="Tertiary" Variant="Filled" Label="Tertiary" OnClick="Increment" />
+        </YogaView>
+        <YogaView Direction="Yoga.YGFlexDirection.YGFlexDirectionRow" Gap="8" Wrap="wrap" AlignItems="center">
+            <Button Tone="Primary" Variant="Outlined" Label="Primary" OnClick="Increment" />
+            <Button Tone="Secondary" Variant="Outlined" Label="Secondary" OnClick="Increment" />
+            <Button Tone="Tertiary" Variant="Outlined" Label="Tertiary" OnClick="Increment" />
+        </YogaView>
+        <YogaView Direction="Yoga.YGFlexDirection.YGFlexDirectionRow" Gap="8" Wrap="wrap" AlignItems="center">
+            <Button Tone="Primary" Variant="Text" Label="Primary" OnClick="Increment" />
+            <Button Tone="Secondary" Variant="Text" Label="Secondary" OnClick="Increment" />
+            <Button Tone="Tertiary" Variant="Text" Label="Tertiary" OnClick="Increment" />
+        </YogaView>
+    </BrutalistCard>
+    <BrutalistCard BorderRadius="12" Padding="16" Gap="12">
+        <YogaText FontSize="18" Color="@CurrentTheme.OnBackground.ToHexColor()" TextAlign="left">
+            Custom Colors
+        </YogaText>
+        <YogaText FontSize="12" Color="@CurrentTheme.OnSurfaceVariant.ToHexColor()" TextAlign="left">
+            Background and Color override the tone-derived colors when specified directly.
+        </YogaText>
+        <YogaView Direction="Yoga.YGFlexDirection.YGFlexDirectionRow" Gap="8" Wrap="wrap" AlignItems="center">
+            <Button Label="Danger" Background="#ef4444" Color="#ffffff" OnClick="Reset" />
+            <Button Label="Success" Background="#22c55e" Color="#ffffff" OnClick="Increment" />
+            <Button Label="Warning" Background="#f59e0b" Color="#000000" OnClick="Increment" />
+        </YogaView>
+        <YogaText FontSize="12" Color="@CurrentTheme.OnSurfaceVariant.ToHexColor()" TextAlign="left">
+            Clicked @Count times
+        </YogaText>
+    </BrutalistCard>
+    <BrutalistCard BorderRadius="12" Padding="16" Gap="12">
+        <YogaText FontSize="18" Color="@CurrentTheme.OnBackground.ToHexColor()" TextAlign="left">
+            Disabled
+        </YogaText>
+        <YogaText FontSize="12" Color="@CurrentTheme.OnSurfaceVariant.ToHexColor()" TextAlign="left">
+            Disabled buttons use SurfaceDim background and OnSurface text color across all variants.
+        </YogaText>
+        <YogaView Direction="Yoga.YGFlexDirection.YGFlexDirectionRow" Gap="8" Wrap="wrap" AlignItems="center">
+            <Button Variant="Filled" Label="Disabled Filled" Disabled="true" OnClick="Increment" />
+            <Button Variant="Outlined" Label="Disabled Outlined" Disabled="true" OnClick="Increment" />
+            <Button Variant="Text" Label="Disabled Text" Disabled="true" OnClick="Increment" />
+        </YogaView>
+    </BrutalistCard>
+
+    @* <BrutalistCard BorderRadius="12" Padding="16" Gap="12">
+                    <YogaText FontSize="18" Color="@CurrentTheme.OnBackground.ToHexColor()" TextAlign="left">
+                        SineWave Loader
+                    </YogaText>
+                    <YogaText FontSize="12" Color="@CurrentTheme.OnSurfaceVariant.ToHexColor()" TextAlign="left"
+                              WrapText>
+                        Animated loader drawn directly with Skia. Adjust speed/amplitude and pause/resume animation.
+                    </YogaText>
+                    <SineWaveLoader Height="44" Amplitude="@LoaderAmplitude" Speed="@LoaderSpeed"
+                                    Animated="@LoaderAnimated" StrokeWidth="3" Margin="4 0" />
+                    <YogaText FontSize="12" Color="@CurrentTheme.OnSurfaceVariant.ToHexColor()" TextAlign="left"
+                              WrapText>
+                        Speed: @LoaderSpeed.ToString("0.0")x · Amplitude: @LoaderAmplitude.ToString("0")
+                    </YogaText>
+                    <YogaView Direction="Yoga.YGFlexDirection.YGFlexDirectionRow" Gap="8" Wrap="wrap"
+                              AlignItems="center">
+                        <Button Label="Slower" Size="S" Variant="Outlined" OnClick="DecreaseLoaderSpeed" />
+                        <Button Label="Faster" Size="S" Variant="Outlined" OnClick="IncreaseLoaderSpeed" />
+                        <Button Label="Lower" Size="S" Variant="Outlined" OnClick="DecreaseLoaderAmplitude" />
+                        <Button Label="Higher" Size="S" Variant="Outlined" OnClick="IncreaseLoaderAmplitude" />
+                        <Button Label="@(LoaderAnimated ? "Pause" : "Resume")" Size="S"
+                                OnClick="ToggleLoaderAnimation" />
+                    </YogaView>
+                </BrutalistCard> *@
+
+</YogaView>
+
+@code {
+    [CascadingParameter]
+    public Scheme<uint> CurrentTheme { get; set; } = new LightSchemeMapper().Map(CorePalette.Of(0x6200EE));
+
+    [Parameter]
+    public EventCallback UseDarkTheme { get; set; }
+
+    [Parameter]
+    public EventCallback UseLightTheme { get; set; }
+
+    private bool AcceptedTerms;
+    private bool EnableAnalytics;
+
+    private int Count = 0;
+
+    private void Increment() => Count++;
+
+    private void Reset() => Count = 0;
+
+    private bool IsModalOpen = false;
+
+    private void OpenModal() => IsModalOpen = true;
+
+    private void CloseModal() => IsModalOpen = false;
+}

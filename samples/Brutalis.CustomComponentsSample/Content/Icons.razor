@@ -1,0 +1,23 @@
+@page "/icons"
+
+@using BlazorBindings.Brutalist.Phosphor
+@using MaterialColorUtilities.Schemes
+
+<YogaScrollableView>
+    <YogaView Padding="16" Direction="Yoga.YGFlexDirection.YGFlexDirectionRow" Gap="12" Wrap="wrap">
+        @foreach (PhosphorIcons icon in Enum.GetValues(typeof(PhosphorIcons)))
+        {
+            <YogaView Width="140" Padding="8" Direction="Yoga.YGFlexDirection.YGFlexDirectionColumn" AlignItems="center"
+                      Gap="16">
+                <PhosphorIcon Icon="@icon" Size="32" Color="@CurrentTheme?.OnBackground.ToHexColor()" />
+                <YogaText FontSize="12" TextAlign="center" Color="@CurrentTheme?.OnBackground.ToHexColor()">
+                    @icon.ToString()</YogaText>
+                </YogaView>
+            }
+        </YogaView>
+    </YogaScrollableView>
+
+@code {
+    [CascadingParameter]
+    public Scheme<uint>? CurrentTheme { get; set; }
+}

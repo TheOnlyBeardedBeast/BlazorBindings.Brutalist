@@ -1,0 +1,29 @@
+@page "/typography"
+
+@using MaterialColorUtilities.Schemes
+@using Brutalist.Material.Typography
+@using BlazorBindings.Brutalist.Material
+@using BlazorBindings.Brutalist.Material.Typography
+
+
+<YogaText Shrink="0" FontSize="28" Color="@CurrentTheme?.OnBackground.ToHexColor()" TextAlign="left">
+    Typography
+</YogaText>
+
+@foreach (MaterialFontSize size in
+        Enum.GetValues(typeof(MaterialFontSize)).Cast<MaterialFontSize>().OrderByDescending(s =>
+            (float)s))
+{
+    <YogaView Direction="Yoga.YGFlexDirection.YGFlexDirectionColumn" Gap="8">
+        <MaterialText Ellipse FontSize="@size">@($"{@size}:")</MaterialText>
+        <MaterialText Ellipse FontSize="@size">The quick brown fox jumps over the lazy dog</MaterialText>
+        <Divider />
+    </YogaView>
+}
+
+
+
+@code {
+    [CascadingParameter]
+    public Scheme<uint>? CurrentTheme { get; set; }
+}

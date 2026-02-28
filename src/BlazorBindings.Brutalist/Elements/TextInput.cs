@@ -32,20 +32,26 @@ public class YogaTextInput : YogaView, IDisposable
     [Parameter]
     public float? FontSize { get; set; }
 
+    [Parameter]
+    public bool IsPassword { get; set; }
+
+    [Parameter]
+    public string PasswordMask { get; set; } = "•";
+
     [Inject]
     protected InteractionState InteractionState { get; set; } = default!;
 
     [Inject]
     protected AnimationTicker AnimationTicker { get; set; } = default!;
 
-    private string _currentValue = string.Empty;
-    private bool _subscriptionsInitialized;
-    private bool _isFocused;
-    private bool _caretVisible = true;
-    private float _caretBlinkElapsed;
-    private const float CaretBlinkIntervalSeconds = 0.5f;
+    protected string _currentValue = string.Empty;
+    protected bool _subscriptionsInitialized;
+    protected bool _isFocused;
+    protected bool _caretVisible = true;
+    protected float _caretBlinkElapsed;
+    protected const float CaretBlinkIntervalSeconds = 0.5f;
 
-    private int _caretOffset = 0;
+    protected int _caretOffset = 0;
 
     public YogaTextInput()
     {
@@ -97,19 +103,25 @@ public class YogaTextInput : YogaView, IDisposable
 
         RenderText(canvas, textBounds);
         RenderCaret(canvas, textBounds);
+        RenderPostMain(canvas, bounds, textBounds);
     }
 
-    private void RenderText(SKCanvas canvas, SKRect textBounds)
+    protected virtual void RenderPostMain(SKCanvas canvas, SKRect bounds, SKRect textBounds)
+    {
+    }
+
+    protected void RenderText(SKCanvas canvas, SKRect textBounds)
     {
         var isEmpty = string.IsNullOrEmpty(_currentValue);
-        var textToDraw = isEmpty ? (Placeholder ?? string.Empty) : _currentValue;
+        var displayValue = GetDisplayValue();
+        var textToDraw = isEmpty ? (Placeholder ?? string.Empty) : displayValue;
 
         using var font = new SKFont
         {
             Size = FontSize ?? 16f,
         };
 
-        var scrollOffset = CalculateScrollOffset(font, textBounds);
+        var scrollOffset = CalculateScrollOffset(font, textBounds, displayValue);
 
         using var paint = new SKPaint
         {
@@ -129,7 +141,7 @@ public class YogaTextInput : YogaView, IDisposable
         canvas.Restore();
     }
 
-    private void RenderCaret(SKCanvas canvas, SKRect textBounds)
+    protected void RenderCaret(SKCanvas canvas, SKRect textBounds)
     {
         if (!_isFocused || !_caretVisible)
         {
@@ -141,13 +153,14 @@ public class YogaTextInput : YogaView, IDisposable
             Size = FontSize ?? 16f,
         };
 
-        var scrollOffset = CalculateScrollOffset(font, textBounds);
+        var displayValue = GetDisplayValue();
+        var scrollOffset = CalculateScrollOffset(font, textBounds, displayValue);
 
         var lineHeight = font.Metrics.Descent - font.Metrics.Ascent;
         var baseline = textBounds.Top + ((textBounds.Height - lineHeight) / 2f) - font.Metrics.Ascent;
 
-        var _caretText = _currentValue.Substring(0, _currentValue.Length - _caretOffset);
-        var textWidth = font.MeasureText(_caretText);
+        var caretText = displayValue.Substring(0, displayValue.Length - _caretOffset);
+        var textWidth = font.MeasureText(caretText);
         var caretX = textBounds.Left + scrollOffset + textWidth + 1f;
         var caretTop = baseline + font.Metrics.Ascent;
         var caretBottom = baseline + font.Metrics.Descent;
@@ -166,15 +179,15 @@ public class YogaTextInput : YogaView, IDisposable
         canvas.Restore();
     }
 
-    private float CalculateScrollOffset(SKFont font, SKRect textBounds)
+    protected float CalculateScrollOffset(SKFont font, SKRect textBounds, string displayValue)
     {
-        if (string.IsNullOrEmpty(_currentValue))
+        if (string.IsNullOrEmpty(displayValue))
         {
             return 0f;
         }
 
         // Calculate caret position in the text
-        var caretText = _currentValue.Substring(0, _currentValue.Length - _caretOffset);
+        var caretText = displayValue.Substring(0, displayValue.Length - _caretOffset);
         var caretPixelPosition = font.MeasureText(caretText);
 
         // Padding for visual feedback
@@ -194,6 +207,17 @@ public class YogaTextInput : YogaView, IDisposable
         }
 
         return 0f;
+    }
+
+    protected string GetDisplayValue()
+    {
+        if (string.IsNullOrEmpty(_currentValue) || !IsPassword)
+        {
+            return _currentValue;
+        }
+
+        var maskChar = string.IsNullOrEmpty(PasswordMask) ? '•' : PasswordMask[0];
+        return new string(maskChar, _currentValue.Length);
     }
 
     protected override bool HandleTextInput(string text)
@@ -229,7 +253,7 @@ public class YogaTextInput : YogaView, IDisposable
         };
     }
 
-    private bool HandleLeftArrow()
+    protected bool HandleLeftArrow()
     {
         if (_caretOffset < _currentValue.Length)
         {
@@ -241,7 +265,7 @@ public class YogaTextInput : YogaView, IDisposable
         return false;
     }
 
-    private bool HandleRightArrow()
+    protected bool HandleRightArrow()
     {
         if (_caretOffset > 0)
         {
@@ -253,7 +277,7 @@ public class YogaTextInput : YogaView, IDisposable
         return false;
     }
 
-    private bool HandleBackspace()
+    protected bool HandleBackspace()
     {
         if (string.IsNullOrEmpty(_currentValue))
         {
@@ -272,7 +296,7 @@ public class YogaTextInput : YogaView, IDisposable
         return true;
     }
 
-    private bool HandleDelete()
+    protected bool HandleDelete()
     {
         if (string.IsNullOrEmpty(_currentValue))
         {
@@ -294,7 +318,7 @@ public class YogaTextInput : YogaView, IDisposable
         return true;
     }
 
-    private void EnsureSubscriptions()
+    protected void EnsureSubscriptions()
     {
         if (_subscriptionsInitialized)
         {
@@ -311,7 +335,7 @@ public class YogaTextInput : YogaView, IDisposable
         }
     }
 
-    private void OnActiveElementChanged(Element? element)
+    protected void OnActiveElementChanged(Element? element)
     {
         var focused = ReferenceEquals(element, this);
         if (_isFocused == focused)
@@ -343,7 +367,7 @@ public class YogaTextInput : YogaView, IDisposable
         _ = InvokeAsync(StateHasChanged);
     }
 
-    private void OnAnimationTick(float deltaSeconds, double elapsedSeconds)
+    protected void OnAnimationTick(float deltaSeconds, double elapsedSeconds)
     {
         if (!_isFocused)
         {
@@ -365,13 +389,13 @@ public class YogaTextInput : YogaView, IDisposable
         _ = InvokeAsync(StateHasChanged);
     }
 
-    private void ShowCaretNow()
+    protected void ShowCaretNow()
     {
         _caretVisible = true;
         _caretBlinkElapsed = 0;
     }
 
-    private void SetValue(string value)
+    protected void SetValue(string value)
     {
         Console.WriteLine($"Setting value: '{value}'");
         if (_currentValue == value)
@@ -392,6 +416,26 @@ public class YogaTextInput : YogaView, IDisposable
         }
 
         StateHasChanged();
+    }
+
+    public void Focus()
+    {
+        EnsureSubscriptions();
+        InteractionState.SetActiveElement(this);
+        ShowCaretNow();
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    public void Blur()
+    {
+        EnsureSubscriptions();
+
+        if (ReferenceEquals(InteractionState.ActiveElement, this))
+        {
+            InteractionState.SetActiveElement(null);
+        }
+
+        _ = InvokeAsync(StateHasChanged);
     }
 
     protected override bool IsFocusable => true;
