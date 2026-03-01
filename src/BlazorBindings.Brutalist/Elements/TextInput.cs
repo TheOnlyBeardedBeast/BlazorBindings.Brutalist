@@ -1,5 +1,7 @@
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using SkiaSharp;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 namespace BlazorBindings.Brutalist.Elements;
 
@@ -38,6 +40,9 @@ public class YogaTextInput : YogaView, IDisposable
     [Parameter]
     public string PasswordMask { get; set; } = "•";
 
+    [Parameter]
+    public EventCallback<CursorMoveEventArgs> OnCursorMove { get; set; }
+
     [Inject]
     protected InteractionState InteractionState { get; set; } = default!;
 
@@ -52,13 +57,76 @@ public class YogaTextInput : YogaView, IDisposable
     protected const float CaretBlinkIntervalSeconds = 0.5f;
 
     protected int _caretOffset = 0;
+    private float _lastCursorX = float.NaN;
+    private float _lastCursorTop = float.NaN;
+    private float _lastCursorBottom = float.NaN;
 
     public YogaTextInput()
     {
         unsafe
         {
             Yoga.YG.NodeStyleSetMinHeight(Node, 36f);
+            Yoga.YG.NodeSetMeasureFunc(Node, &MeasureNode);
         }
+    }
+
+    [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
+    private static unsafe Yoga.YGSize MeasureNode(
+        Yoga.YGNode* node,
+        float width,
+        Yoga.YGMeasureMode widthMode,
+        float height,
+        Yoga.YGMeasureMode heightMode)
+    {
+        var size = new Yoga.YGSize { width = 0, height = 0 };
+
+        var ptr = Yoga.YG.NodeGetContext(node);
+        if (ptr is null)
+        {
+            return size;
+        }
+
+        var handle = GCHandle.FromIntPtr((IntPtr)ptr);
+        if (handle.Target is not YogaTextInput element)
+        {
+            return size;
+        }
+
+        var textToMeasure = string.IsNullOrEmpty(element._currentValue)
+            ? (element.Placeholder ?? string.Empty)
+            : element.GetDisplayValue();
+
+        using var font = new SKFont
+        {
+            Size = element.FontSize ?? 16f,
+        };
+
+        var measuredTextWidth = string.IsNullOrEmpty(textToMeasure) ? 0f : font.MeasureText(textToMeasure);
+        var measuredTextHeight = font.Metrics.Descent - font.Metrics.Ascent;
+
+        var (paddingTop, paddingRight, paddingBottom, paddingLeft) =
+            string.IsNullOrWhiteSpace(element.Padding)
+                ? (0f, 0f, 0f, 0f)
+                : StyleParsers.ParseCssValue(element.Padding);
+
+        var measuredWidth = measuredTextWidth + paddingLeft + paddingRight;
+        var measuredHeight = measuredTextHeight + paddingTop + paddingBottom;
+
+        size.width = widthMode switch
+        {
+            Yoga.YGMeasureMode.YGMeasureModeExactly => width,
+            Yoga.YGMeasureMode.YGMeasureModeAtMost => Math.Min(measuredWidth, width),
+            _ => measuredWidth,
+        };
+
+        size.height = heightMode switch
+        {
+            Yoga.YGMeasureMode.YGMeasureModeExactly => height,
+            Yoga.YGMeasureMode.YGMeasureModeAtMost => Math.Min(measuredHeight, height),
+            _ => measuredHeight,
+        };
+
+        return size;
     }
 
     public override async Task SetParametersAsync(ParameterView parameters)
@@ -71,6 +139,11 @@ public class YogaTextInput : YogaView, IDisposable
         if (hasValue)
         {
             _currentValue = incomingValue ?? string.Empty;
+        }
+
+        unsafe
+        {
+            Yoga.YG.NodeMarkDirty(Node);
         }
     }
 
@@ -148,22 +221,10 @@ public class YogaTextInput : YogaView, IDisposable
             return;
         }
 
-        using var font = new SKFont
+        if (!TryGetCursorMetrics(out var caretX, out var caretTop, out var caretBottom))
         {
-            Size = FontSize ?? 16f,
-        };
-
-        var displayValue = GetDisplayValue();
-        var scrollOffset = CalculateScrollOffset(font, textBounds, displayValue);
-
-        var lineHeight = font.Metrics.Descent - font.Metrics.Ascent;
-        var baseline = textBounds.Top + ((textBounds.Height - lineHeight) / 2f) - font.Metrics.Ascent;
-
-        var caretText = displayValue.Substring(0, displayValue.Length - _caretOffset);
-        var textWidth = font.MeasureText(caretText);
-        var caretX = textBounds.Left + scrollOffset + textWidth + 1f;
-        var caretTop = baseline + font.Metrics.Ascent;
-        var caretBottom = baseline + font.Metrics.Descent;
+            return;
+        }
 
         using var caretPaint = new SKPaint
         {
@@ -177,6 +238,109 @@ public class YogaTextInput : YogaView, IDisposable
         canvas.ClipRect(textBounds);
         canvas.DrawLine(caretX, caretTop, caretX, caretBottom, caretPaint);
         canvas.Restore();
+    }
+
+    protected virtual bool TryGetCursorMetrics(out float cursorX, out float cursorTop, out float cursorBottom)
+    {
+        cursorX = 0f;
+        cursorTop = 0f;
+        cursorBottom = 0f;
+
+        if (!_isFocused)
+        {
+            return false;
+        }
+
+        var offset = GetOffset();
+        float width;
+        float height;
+        unsafe
+        {
+            width = Yoga.YG.NodeLayoutGetWidth(Node);
+            height = Yoga.YG.NodeLayoutGetHeight(Node);
+        }
+
+        var bounds = SKRect.Create(offset.left, offset.top, width, height);
+        var (paddingTop, paddingRight, paddingBottom, paddingLeft) =
+            string.IsNullOrWhiteSpace(Padding)
+                ? (0f, 0f, 0f, 0f)
+                : StyleParsers.ParseCssValue(Padding);
+
+        var textBounds = SKRect.Create(
+            bounds.Left + paddingLeft,
+            bounds.Top + paddingTop,
+            Math.Max(0, bounds.Width - paddingLeft - paddingRight),
+            Math.Max(0, bounds.Height - paddingTop - paddingBottom));
+
+        using var font = new SKFont
+        {
+            Size = FontSize ?? 16f,
+        };
+
+        var displayValue = GetDisplayValue();
+        var scrollOffset = CalculateScrollOffset(font, textBounds, displayValue);
+        var lineHeight = font.Metrics.Descent - font.Metrics.Ascent;
+        var baseline = textBounds.Top + ((textBounds.Height - lineHeight) / 2f) - font.Metrics.Ascent;
+        var caretText = displayValue.Substring(0, displayValue.Length - _caretOffset);
+        var textWidth = font.MeasureText(caretText);
+
+        cursorX = textBounds.Left + scrollOffset + textWidth + 1f;
+        cursorTop = baseline + font.Metrics.Ascent;
+        cursorBottom = baseline + font.Metrics.Descent;
+        return true;
+    }
+
+    protected void NotifyCursorMove()
+    {
+        if (!OnCursorMove.HasDelegate)
+        {
+            return;
+        }
+
+        if (!TryGetCursorMetrics(out var cursorX, out var cursorTop, out var cursorBottom))
+        {
+            return;
+        }
+
+        if (Math.Abs(_lastCursorX - cursorX) < 0.1f
+            && Math.Abs(_lastCursorTop - cursorTop) < 0.1f
+            && Math.Abs(_lastCursorBottom - cursorBottom) < 0.1f)
+        {
+            return;
+        }
+
+        _lastCursorX = cursorX;
+        _lastCursorTop = cursorTop;
+        _lastCursorBottom = cursorBottom;
+
+        var offset = GetOffset();
+        float width;
+        float height;
+        unsafe
+        {
+            width = Yoga.YG.NodeLayoutGetWidth(Node);
+            height = Yoga.YG.NodeLayoutGetHeight(Node);
+        }
+
+        var elementLeft = offset.left;
+        var elementTop = offset.top;
+
+        var args = new CursorMoveEventArgs
+        {
+            Element = this,
+            ElementLeft = elementLeft,
+            ElementTop = elementTop,
+            ElementWidth = width,
+            ElementHeight = height,
+            CursorX = cursorX,
+            CursorTop = cursorTop,
+            CursorBottom = cursorBottom,
+            CursorLocalX = cursorX - elementLeft,
+            CursorLocalTop = cursorTop - elementTop,
+            CursorLocalBottom = cursorBottom - elementTop,
+        };
+
+        _ = InvokeEventCallbackAsync(OnCursorMove, args);
     }
 
     protected float CalculateScrollOffset(SKFont font, SKRect textBounds, string displayValue)
@@ -362,6 +526,9 @@ public class YogaTextInput : YogaView, IDisposable
 
             _caretVisible = false;
             _caretBlinkElapsed = 0;
+            _lastCursorX = float.NaN;
+            _lastCursorTop = float.NaN;
+            _lastCursorBottom = float.NaN;
         }
 
         _ = InvokeAsync(StateHasChanged);
@@ -393,6 +560,11 @@ public class YogaTextInput : YogaView, IDisposable
     {
         _caretVisible = true;
         _caretBlinkElapsed = 0;
+
+        if (_isFocused)
+        {
+            _ = InvokeAsync(NotifyCursorMove);
+        }
     }
 
     protected void SetValue(string value)
@@ -404,6 +576,11 @@ public class YogaTextInput : YogaView, IDisposable
         }
 
         _currentValue = value;
+
+        unsafe
+        {
+            Yoga.YG.NodeMarkDirty(Node);
+        }
 
         if (ValueChanged.HasDelegate)
         {

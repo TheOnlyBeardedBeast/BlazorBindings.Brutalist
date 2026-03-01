@@ -7,6 +7,8 @@ namespace BlazorBindings.Brutalist.Elements;
 public unsafe class YogaScrollableView : YogaView
 {
     [Parameter]
+    public bool PreventParentScroll { get; set; } = false;
+    [Parameter]
     public float ScrollSpeed { get; set; } = 40f;
 
     [Parameter]
@@ -24,6 +26,7 @@ public unsafe class YogaScrollableView : YogaView
     private float _scrollY;
     private float _viewportHeight;
     private float _contentHeight;
+    private ScrollController? _subscribedScrollController;
 
     public YogaScrollableView()
     {
@@ -38,6 +41,23 @@ public unsafe class YogaScrollableView : YogaView
         if (string.IsNullOrWhiteSpace(Overflow))
         {
             Overflow = "hidden";
+        }
+
+        // (re)subscribe to controller events
+        if (!ReferenceEquals(_subscribedScrollController, ScrollController))
+        {
+            if (_subscribedScrollController is not null)
+            {
+                _subscribedScrollController.ScrollRequested -= OnScrollRequested;
+            }
+
+            if (ScrollController is not null)
+            {
+                ScrollController.ScrollRequested -= OnScrollRequested;
+                ScrollController.ScrollRequested += OnScrollRequested;
+            }
+
+            _subscribedScrollController = ScrollController;
         }
 
         return task;
@@ -184,7 +204,7 @@ public unsafe class YogaScrollableView : YogaView
         var maxScroll = MaxScrollY;
         if (maxScroll <= 0)
         {
-            return false;
+            return PreventParentScroll;
         }
 
         var old = _scrollY;
@@ -192,7 +212,7 @@ public unsafe class YogaScrollableView : YogaView
 
         if (Math.Abs(_scrollY - old) < 0.01f)
         {
-            return false;
+            return PreventParentScroll;
         }
 
         StateHasChanged();
@@ -240,6 +260,48 @@ public unsafe class YogaScrollableView : YogaView
     }
 
     private float MaxScrollY => Math.Max(0f, _contentHeight - _viewportHeight);
+
+    [Parameter]
+    public ScrollController? ScrollController { get; set; }
+
+    private void OnScrollRequested(ScrollRequest req)
+    {
+        if (req == null) return;
+
+        // Run on renderer thread
+        _ = InvokeAsync(() =>
+        {
+            var maxScroll = MaxScrollY;
+            var newScroll = _scrollY;
+
+            if (req.Element is null)
+            {
+                newScroll = req.LocalTop;
+            }
+            else
+            {
+                var childTop = YG.NodeLayoutGetTop(req.Element.Node);
+                var absoluteTop = childTop + req.LocalTop;
+                var absoluteBottom = childTop + req.LocalBottom;
+
+                if (absoluteTop < _scrollY)
+                {
+                    newScroll = absoluteTop;
+                }
+                else if (absoluteBottom > _scrollY + _viewportHeight)
+                {
+                    newScroll = absoluteBottom - _viewportHeight;
+                }
+            }
+
+            newScroll = Math.Clamp(newScroll, 0f, maxScroll);
+            if (Math.Abs(newScroll - _scrollY) > 0.01f)
+            {
+                _scrollY = newScroll;
+                StateHasChanged();
+            }
+        });
+    }
 
     private void DrawScrollIndicator()
     {
@@ -296,5 +358,14 @@ public unsafe class YogaScrollableView : YogaView
         var radius = width / 2f;
         canvas.DrawRoundRect(trackRect, radius, radius, trackPaint);
         canvas.DrawRoundRect(thumbRect, radius, radius, thumbPaint);
+    }
+
+    public void Dispose()
+    {
+        if (_subscribedScrollController is not null)
+        {
+            _subscribedScrollController.ScrollRequested -= OnScrollRequested;
+            _subscribedScrollController = null;
+        }
     }
 }

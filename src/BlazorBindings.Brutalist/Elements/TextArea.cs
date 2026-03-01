@@ -1,5 +1,7 @@
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using SkiaSharp;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace BlazorBindings.Brutalist.Elements;
@@ -17,7 +19,85 @@ public class YogaTextArea : YogaTextInput
         unsafe
         {
             Yoga.YG.NodeStyleSetMinHeight(Node, 96f);
+            Yoga.YG.NodeSetMeasureFunc(Node, &MeasureNode);
         }
+    }
+
+    [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
+    private static unsafe Yoga.YGSize MeasureNode(
+        Yoga.YGNode* node,
+        float width,
+        Yoga.YGMeasureMode widthMode,
+        float height,
+        Yoga.YGMeasureMode heightMode)
+    {
+        var size = new Yoga.YGSize { width = 0, height = 0 };
+
+        var ptr = Yoga.YG.NodeGetContext(node);
+        if (ptr is null)
+        {
+            return size;
+        }
+
+        var handle = GCHandle.FromIntPtr((IntPtr)ptr);
+        if (handle.Target is not YogaTextArea element)
+        {
+            return size;
+        }
+
+        var textToMeasure = string.IsNullOrEmpty(element._currentValue)
+            ? (element.Placeholder ?? string.Empty)
+            : element.GetDisplayValue();
+
+        using var font = new SKFont
+        {
+            Size = element.FontSize ?? 16f,
+        };
+
+        var lineHeight = element.LineHeight ?? (font.Metrics.Descent - font.Metrics.Ascent);
+
+        var (paddingTop, paddingRight, paddingBottom, paddingLeft) =
+            string.IsNullOrWhiteSpace(element.Padding)
+                ? (0f, 0f, 0f, 0f)
+                : StyleParsers.ParseCssValue(element.Padding);
+
+        var hasWidthConstraint = widthMode != Yoga.YGMeasureMode.YGMeasureModeUndefined;
+        var contentWidth = hasWidthConstraint
+            ? Math.Max(0f, width - paddingLeft - paddingRight)
+            : 0f;
+
+        var lines = BuildLineLayout(
+            textToMeasure,
+            contentWidth,
+            font,
+            element.WrapText && hasWidthConstraint);
+
+        var measuredTextWidth = 0f;
+        foreach (var line in lines)
+        {
+            measuredTextWidth = Math.Max(measuredTextWidth, font.MeasureText(line.Text));
+        }
+
+        var measuredTextHeight = Math.Max(1, lines.Count) * lineHeight;
+
+        var measuredWidth = measuredTextWidth + paddingLeft + paddingRight;
+        var measuredHeight = measuredTextHeight + paddingTop + paddingBottom;
+
+        size.width = widthMode switch
+        {
+            Yoga.YGMeasureMode.YGMeasureModeExactly => width,
+            Yoga.YGMeasureMode.YGMeasureModeAtMost => Math.Min(measuredWidth, width),
+            _ => measuredWidth,
+        };
+
+        size.height = heightMode switch
+        {
+            Yoga.YGMeasureMode.YGMeasureModeExactly => height,
+            Yoga.YGMeasureMode.YGMeasureModeAtMost => measuredHeight,
+            _ => measuredHeight,
+        };
+
+        return size;
     }
 
     protected override bool HandleTextInput(string text)
@@ -61,7 +141,8 @@ public class YogaTextArea : YogaTextInput
     {
         using var font = new SKFont { Size = FontSize ?? 16f };
         var display = GetDisplayValue();
-        var lines = BuildLineLayout(display, /* maxWidth */ 10000f, font, WrapText);
+        var wrapWidth = GetCurrentWrapWidth();
+        var lines = BuildLineLayout(display, wrapWidth, font, WrapText);
 
         var caretIndex = Math.Clamp(display.Length - _caretOffset, 0, display.Length);
 
@@ -95,7 +176,6 @@ public class YogaTextArea : YogaTextInput
         var targetLine = lines[lineIndex - 1];
         var bestCol = 0;
         var bestDiff = float.MaxValue;
-        var acc = 0f;
         for (var c = 0; c <= targetLine.Text.Length; c++)
         {
             var sample = targetLine.Text.Substring(0, c);
@@ -118,7 +198,8 @@ public class YogaTextArea : YogaTextInput
     {
         using var font = new SKFont { Size = FontSize ?? 16f };
         var display = GetDisplayValue();
-        var lines = BuildLineLayout(display, /* maxWidth */ 10000f, font, WrapText);
+        var wrapWidth = GetCurrentWrapWidth();
+        var lines = BuildLineLayout(display, wrapWidth, font, WrapText);
 
         var caretIndex = Math.Clamp(display.Length - _caretOffset, 0, display.Length);
 
@@ -168,6 +249,22 @@ public class YogaTextArea : YogaTextInput
         _caretOffset = Math.Max(0, display.Length - newCaretIndex);
         ShowCaretNow();
         return false;
+    }
+
+    private float GetCurrentWrapWidth()
+    {
+        float width;
+        unsafe
+        {
+            width = Yoga.YG.NodeLayoutGetWidth(Node);
+        }
+
+        var (_, paddingRight, _, paddingLeft) =
+            string.IsNullOrWhiteSpace(Padding)
+                ? (0f, 0f, 0f, 0f)
+                : StyleParsers.ParseCssValue(Padding);
+
+        return Math.Max(0f, width - paddingLeft - paddingRight);
     }
 
     private bool InsertNewLine()
@@ -223,6 +320,8 @@ public class YogaTextArea : YogaTextInput
         }
 
         canvas.Restore();
+
+        // Scrolling request for caret moved to RenderCaret where caret metrics are available.
     }
 
     protected override void RenderCaret(SKCanvas canvas, SKRect textBounds)
@@ -231,6 +330,57 @@ public class YogaTextArea : YogaTextInput
         {
             return;
         }
+
+        if (!TryGetCursorMetrics(out var caretX, out var caretTop, out var caretBottom))
+        {
+            return;
+        }
+
+        using var caretPaint = new SKPaint
+        {
+            Style = SKPaintStyle.Stroke,
+            StrokeWidth = 1f,
+            IsAntialias = false,
+            Color = string.IsNullOrWhiteSpace(Color) ? SKColors.Black : SKColor.Parse(Color),
+        };
+
+        canvas.Save();
+        canvas.ClipRect(textBounds);
+        canvas.DrawLine(caretX, caretTop, caretX, caretBottom, caretPaint);
+        canvas.Restore();
+    }
+
+    protected override bool TryGetCursorMetrics(out float cursorX, out float cursorTop, out float cursorBottom)
+    {
+        cursorX = 0f;
+        cursorTop = 0f;
+        cursorBottom = 0f;
+
+        if (!_isFocused)
+        {
+            return false;
+        }
+
+        var offset = GetOffset();
+        float width;
+        float height;
+        unsafe
+        {
+            width = Yoga.YG.NodeLayoutGetWidth(Node);
+            height = Yoga.YG.NodeLayoutGetHeight(Node);
+        }
+
+        var bounds = SKRect.Create(offset.left, offset.top, width, height);
+        var (paddingTop, paddingRight, paddingBottom, paddingLeft) =
+            string.IsNullOrWhiteSpace(Padding)
+                ? (0f, 0f, 0f, 0f)
+                : StyleParsers.ParseCssValue(Padding);
+
+        var textBounds = SKRect.Create(
+            bounds.Left + paddingLeft,
+            bounds.Top + paddingTop,
+            Math.Max(0, bounds.Width - paddingLeft - paddingRight),
+            Math.Max(0, bounds.Height - paddingTop - paddingBottom));
 
         using var font = new SKFont
         {
@@ -270,36 +420,21 @@ public class YogaTextArea : YogaTextInput
             ? string.Empty
             : caretLine[..Math.Min(caretColumn, caretLine.Length)];
 
-        var caretX = textBounds.Left + font.MeasureText(caretPrefix) + 1f;
+        cursorX = textBounds.Left + font.MeasureText(caretPrefix) + 1f;
         var caretBaseline = firstBaseline + (caretLineIndex * lineHeight);
-        var caretTop = caretBaseline + font.Metrics.Ascent;
-        var caretBottom = caretBaseline + font.Metrics.Descent;
-
-        using var caretPaint = new SKPaint
-        {
-            Style = SKPaintStyle.Stroke,
-            StrokeWidth = 1f,
-            IsAntialias = false,
-            Color = string.IsNullOrWhiteSpace(Color) ? SKColors.Black : SKColor.Parse(Color),
-        };
-
-        canvas.Save();
-        canvas.ClipRect(textBounds);
-        canvas.DrawLine(caretX, caretTop, caretX, caretBottom, caretPaint);
-        canvas.Restore();
+        cursorTop = caretBaseline + font.Metrics.Ascent;
+        cursorBottom = caretBaseline + font.Metrics.Descent;
+        return true;
     }
 
-    private static List<TextAreaLineLayout> BuildLineLayout(string text, float maxWidth, SKFont font, bool wrapText)
+    private static List<TextAreaLineLayout> BuildLineLayout(string source, float maxWidth, SKFont font, bool wrapText)
     {
-        var lines = new List<TextAreaLineLayout>();
-        var source = text.Replace("\r\n", "\n").Replace('\r', '\n');
-
-        if (source.Length == 0)
+        if (string.IsNullOrEmpty(source))
         {
-            lines.Add(new TextAreaLineLayout(0, string.Empty));
-            return lines;
+            return [new TextAreaLineLayout(0, string.Empty)];
         }
 
+        var lines = new List<TextAreaLineLayout>();
         var current = new StringBuilder();
         var currentStartIndex = 0;
 

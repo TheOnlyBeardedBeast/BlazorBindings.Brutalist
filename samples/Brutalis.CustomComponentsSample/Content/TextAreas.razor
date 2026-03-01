@@ -9,8 +9,10 @@
     <YogaText FontSize="14" Color="@CurrentTheme.OnSurfaceVariant.ToHexColor()" TextAlign="left">
         Basic multiline input
     </YogaText>
-    <YogaScrollableView Height="100" Background="@CurrentTheme.SurfaceContainerLow.ToHexColor()" BorderRadius="8">
-        <YogaTextArea Padding="12" Placeholder="Write multiple lines here..."                      ValueChanged="@OnNotesChanged" />
+    <YogaScrollableView Height="100" Background="@CurrentTheme.SurfaceContainerLow.ToHexColor()" BorderRadius="8"
+                        ScrollController="@notesScrollController">
+        <YogaTextArea MinHeight="100" Padding="12" Placeholder="Write multiple lines here..."
+                      ValueChanged="@OnNotesChanged" OnCursorMove="@OnNotesCursorMove" />
     </YogaScrollableView>
     <YogaText Color="@CurrentTheme.OnBackground.ToHexColor()" TextAlign="left">Value:</YogaText>
     <YogaText Color="@CurrentTheme.OnBackground.ToHexColor()" TextAlign="left" WrapText>
@@ -35,6 +37,7 @@
 
     private string notes = string.Empty;
     private string raw = string.Empty;
+    private readonly ScrollController notesScrollController = new();
 
     private void OnNotesChanged(string value)
     {
@@ -44,5 +47,10 @@
     private void OnRawChanged(string value)
     {
         raw = value;
+    }
+
+    private void OnNotesCursorMove(CursorMoveEventArgs cursor)
+    {
+        notesScrollController.EnsureVisible(cursor.Element, cursor.CursorLocalTop, cursor.CursorLocalBottom);
     }
 }
