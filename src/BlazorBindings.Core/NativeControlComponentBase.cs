@@ -26,9 +26,44 @@ public abstract class NativeControlComponentBase : IComponent
 
     public virtual Task SetParametersAsync(ParameterView parameters)
     {
-        parameters.SetParameterProperties(this);
+        try
+        {
+            parameters.SetParameterProperties(this);
+        }
+        catch (Exception ex)
+        {
+            if (ThrowOnInvalidParameters)
+            {
+                throw;
+            }
+
+            HandleParameterBindingError(ex, parameters);
+        }
+
         StateHasChanged();
         return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// When true the framework will rethrow parameter binding errors (old behavior).
+    /// When false (default) parameter binding failures are caught and forwarded to <see cref="HandleParameterBindingError"/>.
+    /// </summary>
+    public static bool ThrowOnInvalidParameters { get; set; }
+
+    /// <summary>
+    /// Override to handle parameter binding errors. Default implementation logs to Console.
+    /// This prevents hot-reload or user mistakes from terminating the whole app during development.
+    /// </summary>
+    protected virtual void HandleParameterBindingError(Exception ex, ParameterView parameters)
+    {
+        try
+        {
+            Console.WriteLine($"[ParameterBinding] Warning: {ex.GetType().Name}: {ex.Message}");
+        }
+        catch
+        {
+            // swallowing any logging failures to avoid escalation
+        }
     }
 
     // Equals methods are overridden only as a workaround to this issue:

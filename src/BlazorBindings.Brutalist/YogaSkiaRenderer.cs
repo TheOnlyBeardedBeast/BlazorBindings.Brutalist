@@ -15,12 +15,15 @@ public class YogaSkiaRenderer : Renderer
 
     private readonly IBrutalistRenderSurface _renderSurface;
     private readonly InteractionState _interactionState;
+    private readonly ILogger _logger;
+    public static bool ReThrowRenderExceptions { get; set; }
 
     public YogaSkiaRenderer(IServiceProvider serviceProvider, ILoggerFactory loggerFactory, IBrutalistRenderSurface renderSurface, InteractionState interactionState)
         : base(serviceProvider, loggerFactory)
     {
         _renderSurface = renderSurface;
         _interactionState = interactionState;
+        _logger = loggerFactory.CreateLogger<YogaSkiaRenderer>();
         _renderSurface.SurfaceResized += OnSurfaceResized;
         _renderSurface.MouseClicked += OnMouseClicked;
         _renderSurface.MouseMoved += OnMouseMoved;
@@ -228,7 +231,20 @@ public class YogaSkiaRenderer : Renderer
 
     protected override void HandleException(Exception exception)
     {
-        ExceptionDispatchInfo.Capture(exception).Throw();
+        try
+        {
+            _logger.LogError(exception, "Render exception caught");
+        }
+        catch
+        {
+            try { Console.WriteLine($"[RenderError] {exception.GetType().Name}: {exception.Message}"); } catch { }
+        }
+
+        if (ReThrowRenderExceptions)
+        {
+            ExceptionDispatchInfo.Capture(exception).Throw();
+        }
+        // otherwise swallow to allow hot-reload and development iteration to continue
     }
 }
 
