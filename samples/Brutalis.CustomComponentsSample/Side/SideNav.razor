@@ -1,4 +1,4 @@
-@inject NavigationManager Navigation
+@inherits NavigationAwareComponentBase
 
 <Drawer>
     <ScrollableContent>
@@ -12,6 +12,8 @@
                 Variant="@GetButtonVariant("/richtexts")" OnClick='@NavigateTo("/richtexts")' />
         <Button Size="M" Label="Text Fields" HeadIcon="@PhosphorIcons.CursorText" JustifyContent="start"
                 Variant="@GetButtonVariant("/textfields")" OnClick='@NavigateTo("/textfields")' />
+        <Button Size="M" Label="Text Areas" HeadIcon="@PhosphorIcons.NotePencil" JustifyContent="start"
+                Variant="@GetButtonVariant("/textareas")" OnClick='@NavigateTo("/textareas")' />
         <Button Size="M" Label="Icons" HeadIcon="@PhosphorIcons.Star" JustifyContent="start"
                 Variant="@GetButtonVariant("/icons")" OnClick='@NavigateTo("/icons")' />
         <Button Size="M" Label="Typography" HeadIcon="@PhosphorIcons.TextT" JustifyContent="start"

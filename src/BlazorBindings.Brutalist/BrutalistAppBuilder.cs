@@ -53,7 +53,7 @@ public class BrutalistAppBuilder
             return SynchronizationContext.Current;
         });
         Services.AddLogging(builder => builder.AddConsole());
-        Services.AddSingleton<NavigationManager, BrutalistNavigationManager>(); // or your own impl
+        Services.AddSingleton<NavigationManager, BrutalistNavigationManager>();
         Services.AddSingleton<INavigationInterception, BrutalistNavigationInterception>();
         Services.AddSingleton<IScrollToLocationHash, BrutalistScrollToLocationHash>();
         Services.AddSingleton<InteractionState>();

@@ -110,7 +110,7 @@ public class YogaTextInput : YogaView, IDisposable
     {
     }
 
-    protected void RenderText(SKCanvas canvas, SKRect textBounds)
+    protected virtual void RenderText(SKCanvas canvas, SKRect textBounds)
     {
         var isEmpty = string.IsNullOrEmpty(_currentValue);
         var displayValue = GetDisplayValue();
@@ -141,7 +141,7 @@ public class YogaTextInput : YogaView, IDisposable
         canvas.Restore();
     }
 
-    protected void RenderCaret(SKCanvas canvas, SKRect textBounds)
+    protected virtual void RenderCaret(SKCanvas canvas, SKRect textBounds)
     {
         if (!_isFocused || !_caretVisible)
         {

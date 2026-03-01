@@ -3,7 +3,7 @@
 @using MaterialColorUtilities.Schemes
 @using MaterialColorUtilities.Palettes
 @using Microsoft.AspNetCore.Components.Routing
-@inject NavigationManager Navigation
+@inherits NavigationAwareComponentBase
 
 <YogaWindow Direction="Yoga.YGFlexDirection.YGFlexDirectionRow" Background="@CurrentTheme.Background.ToHexColor()"
             AlignItems="stretch" Position="relative">
@@ -12,7 +12,7 @@
         <YogaView Padding="8 12" Shrink="0">
             <YogaText FontSize="12" Color="@CurrentTheme.OnSurfaceVariant.ToHexColor()">URI: @Navigation.Uri</YogaText>
         </YogaView>
-        <Router AppAssembly="@typeof(AppContent).Assembly" OnNavigateAsync="OnNavigateAsync">
+        <Router AppAssembly="@typeof(AppContent).Assembly">
             <Found Context="routeData">
                 <RouteView RouteData="@routeData" />
             </Found>
@@ -118,11 +118,8 @@
         return Task.CompletedTask;
     }
 
-    private Task OnNavigateAsync(NavigationContext context)
+    protected override void OnLocationChanged(LocationChangedEventArgs args)
     {
-        // Close the modal on navigation
         IsModalOpen = false;
-        StateHasChanged();
-        return Task.CompletedTask;
     }
 }

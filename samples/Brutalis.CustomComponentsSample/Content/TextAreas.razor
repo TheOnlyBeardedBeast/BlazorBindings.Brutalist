@@ -1,0 +1,48 @@
+@page "/textareas"
+@using MaterialColorUtilities.Schemes
+
+<YogaText Shrink="0" FontSize="28" Color="@CurrentTheme.OnBackground.ToHexColor()" TextAlign="left">
+    Text Areas
+</YogaText>
+
+<BrutalistCard BorderRadius="12" Padding="16" Gap="12">
+    <YogaText FontSize="14" Color="@CurrentTheme.OnSurfaceVariant.ToHexColor()" TextAlign="left">
+        Basic multiline input
+    </YogaText>
+    <YogaScrollableView Height="100" Background="@CurrentTheme.SurfaceContainerLow.ToHexColor()" BorderRadius="8">
+        <YogaTextArea Padding="12" Placeholder="Write multiple lines here..."                      ValueChanged="@OnNotesChanged" />
+    </YogaScrollableView>
+    <YogaText Color="@CurrentTheme.OnBackground.ToHexColor()" TextAlign="left">Value:</YogaText>
+    <YogaText Color="@CurrentTheme.OnBackground.ToHexColor()" TextAlign="left" WrapText>
+        @notes
+    </YogaText>
+
+    <Divider />
+
+    <YogaText FontSize="14" Color="@CurrentTheme.OnSurfaceVariant.ToHexColor()" TextAlign="left">
+        No wrap + custom line height
+    </YogaText>
+    <YogaTextArea MinHeight="120" Padding="12" Placeholder="Long lines stay on one visual line" WrapText="false"
+                  LineHeight="24" ValueChanged="@OnRawChanged" />
+    <YogaText Color="@CurrentTheme.OnSurfaceVariant.ToHexColor()" TextAlign="left" WrapText>
+        @raw
+    </YogaText>
+</BrutalistCard>
+
+@code {
+    [CascadingParameter]
+    public Scheme<uint> CurrentTheme { get; set; } = default!;
+
+    private string notes = string.Empty;
+    private string raw = string.Empty;
+
+    private void OnNotesChanged(string value)
+    {
+        notes = value;
+    }
+
+    private void OnRawChanged(string value)
+    {
+        raw = value;
+    }
+}

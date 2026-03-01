@@ -19,6 +19,8 @@ public unsafe class YogaText : YogaView, IHandleChildContentText
     public float? FontSize { get; set; }
 
     [Parameter]
+    public float? LineHeight { get; set; }
+    [Parameter]
     public bool CenterText { get; set; } = true;
 
     [Parameter]
@@ -113,7 +115,8 @@ public unsafe class YogaText : YogaView, IHandleChildContentText
         };
 
         var measuredWidth = font.MeasureText(element.Text);
-        var lineHeight = font.Metrics.Descent - font.Metrics.Ascent;
+        var defaultLineHeight = font.Metrics.Descent - font.Metrics.Ascent;
+        var lineHeight = element.LineHeight ?? defaultLineHeight;
         var measuredHeight = lineHeight;
 
         if (element.WrapText && widthMode != Yoga.YGMeasureMode.YGMeasureModeUndefined)
@@ -399,7 +402,8 @@ public unsafe class YogaText : YogaView, IHandleChildContentText
         if (WrapText)
         {
             var lines = BuildWrappedLines(Text, visibleContentBounds.Width, font);
-            var lineHeight = font.Metrics.Descent - font.Metrics.Ascent;
+            var defaultLineHeight = font.Metrics.Descent - font.Metrics.Ascent;
+            var lineHeight = LineHeight ?? defaultLineHeight;
             var lineY = visibleContentBounds.Top - font.Metrics.Ascent;
 
             foreach (var line in lines)
