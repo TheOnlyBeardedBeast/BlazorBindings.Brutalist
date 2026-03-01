@@ -137,6 +137,68 @@ public class YogaTextArea : YogaTextInput
         };
     }
 
+    protected override bool HandleClick(SKPoint point)
+    {
+        EnsureSubscriptions();
+        InteractionState.SetActiveElement(this);
+
+        var offset = GetOffset();
+        float width;
+        float height;
+        unsafe
+        {
+            width = Yoga.YG.NodeLayoutGetWidth(Node);
+            height = Yoga.YG.NodeLayoutGetHeight(Node);
+        }
+
+        var bounds = SKRect.Create(offset.left, offset.top, width, height);
+        var (paddingTop, paddingRight, paddingBottom, paddingLeft) =
+            string.IsNullOrWhiteSpace(Padding)
+                ? (0f, 0f, 0f, 0f)
+                : StyleParsers.ParseCssValue(Padding);
+
+        var textBounds = SKRect.Create(
+            bounds.Left + paddingLeft,
+            bounds.Top + paddingTop,
+            Math.Max(0, bounds.Width - paddingLeft - paddingRight),
+            Math.Max(0, bounds.Height - paddingTop - paddingBottom));
+
+        using var font = new SKFont
+        {
+            Size = FontSize ?? 16f,
+        };
+
+        var displayValue = GetDisplayValue();
+        var lines = BuildLineLayout(displayValue, textBounds.Width, font, WrapText);
+        var lineHeight = LineHeight ?? (font.Metrics.Descent - font.Metrics.Ascent);
+
+        var relativeY = point.Y - textBounds.Top;
+        var targetLineIndex = (int)Math.Floor(relativeY / lineHeight);
+        targetLineIndex = Math.Clamp(targetLineIndex, 0, Math.Max(0, lines.Count - 1));
+
+        var targetLine = lines[targetLineIndex];
+        var relativeX = Math.Max(0f, point.X - textBounds.Left);
+
+        var nearestColumn = 0;
+        var nearestDistance = float.MaxValue;
+        for (var c = 0; c <= targetLine.Text.Length; c++)
+        {
+            var widthAtColumn = c == 0 ? 0f : font.MeasureText(targetLine.Text[..c]);
+            var distance = Math.Abs(widthAtColumn - relativeX);
+            if (distance < nearestDistance)
+            {
+                nearestDistance = distance;
+                nearestColumn = c;
+            }
+        }
+
+        var newCaretIndex = targetLine.StartIndex + nearestColumn;
+        _caretOffset = Math.Max(0, displayValue.Length - newCaretIndex);
+        ShowCaretNow();
+        _ = InvokeAsync(StateHasChanged);
+        return true;
+    }
+
     private bool MoveCaretUp()
     {
         using var font = new SKFont { Size = FontSize ?? 16f };

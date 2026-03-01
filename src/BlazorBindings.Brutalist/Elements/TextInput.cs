@@ -417,6 +417,61 @@ public class YogaTextInput : YogaView, IDisposable
         };
     }
 
+    protected override bool HandleClick(SKPoint point)
+    {
+        EnsureSubscriptions();
+        InteractionState.SetActiveElement(this);
+
+        var offset = GetOffset();
+        float width;
+        float height;
+        unsafe
+        {
+            width = Yoga.YG.NodeLayoutGetWidth(Node);
+            height = Yoga.YG.NodeLayoutGetHeight(Node);
+        }
+
+        var bounds = SKRect.Create(offset.left, offset.top, width, height);
+        var (paddingTop, paddingRight, paddingBottom, paddingLeft) =
+            string.IsNullOrWhiteSpace(Padding)
+                ? (0f, 0f, 0f, 0f)
+                : StyleParsers.ParseCssValue(Padding);
+
+        var textBounds = SKRect.Create(
+            bounds.Left + paddingLeft,
+            bounds.Top + paddingTop,
+            Math.Max(0, bounds.Width - paddingLeft - paddingRight),
+            Math.Max(0, bounds.Height - paddingTop - paddingBottom));
+
+        using var font = new SKFont
+        {
+            Size = FontSize ?? 16f,
+        };
+
+        var displayValue = GetDisplayValue();
+        var scrollOffset = CalculateScrollOffset(font, textBounds, displayValue);
+        var relativeX = point.X - (textBounds.Left + scrollOffset);
+        var clampedX = Math.Max(0f, relativeX);
+
+        var nearestIndex = 0;
+        var nearestDistance = float.MaxValue;
+        for (var i = 0; i <= displayValue.Length; i++)
+        {
+            var widthAtIndex = i == 0 ? 0f : font.MeasureText(displayValue[..i]);
+            var distance = Math.Abs(widthAtIndex - clampedX);
+            if (distance < nearestDistance)
+            {
+                nearestDistance = distance;
+                nearestIndex = i;
+            }
+        }
+
+        _caretOffset = Math.Max(0, displayValue.Length - nearestIndex);
+        ShowCaretNow();
+        _ = InvokeAsync(StateHasChanged);
+        return true;
+    }
+
     protected bool HandleLeftArrow()
     {
         if (_caretOffset < _currentValue.Length)
@@ -615,6 +670,7 @@ public class YogaTextInput : YogaView, IDisposable
         _ = InvokeAsync(StateHasChanged);
     }
 
+    protected override bool IsInteractive => true;
     protected override bool IsFocusable => true;
 
     public void Dispose()
