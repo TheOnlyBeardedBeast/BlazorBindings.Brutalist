@@ -2,13 +2,20 @@
 @using BlazorBindings.Brutalist.Phosphor
 @using BlazorBindings.Brutalist.Material.Button
 
-<YogaView AlignSelf="stretch" Grow="0" Shrink="0" Width="@(IsOpen ? 360 : 94)" Padding="12 12" BorderRadius="0 16 16 0"
-          Gap="16" Direction="Yoga.YGFlexDirection.YGFlexDirectionColumn">
-    <Button Size="M" HeadIcon="@PhosphorIcons.List" JustifyContent="start" Variant="Text" OnClick="@Toggle" />
-    <YogaScrollableView Direction="Yoga.YGFlexDirection.YGFlexDirectionColumn" Grow="1" Overflow="visible">
+<YogaView AlignSelf="stretch" Grow="0" Shrink="0" Width="@(IsOpen ? 360 : 94)" BorderRadius="0 16 16 0" Gap="16"
+          Direction="Yoga.YGFlexDirection.YGFlexDirectionColumn">
+    <YogaView Padding="12 12 0 12">
+        <Button Size="M" HeadIcon="@PhosphorIcons.List" JustifyContent="start" Variant="Text" OnClick="@Toggle" />
+    </YogaView>
+
+    <YogaScrollableView Direction="Yoga.YGFlexDirection.YGFlexDirectionColumn" Grow="1" Padding="12">
         @ScrollableContent
+        <YogaView Height="6" Width="2"></YogaView>
     </YogaScrollableView>
-    <Button HeadIcon="@PhosphorIcons.GearSix" JustifyContent="start" Variant="Text" />
+    <YogaView Padding="0 12 12 12">
+        <Button HeadIcon="@PhosphorIcons.GearSix" JustifyContent="start" Variant="Text" />
+    </YogaView>
+
 </YogaView>
 
 @code {

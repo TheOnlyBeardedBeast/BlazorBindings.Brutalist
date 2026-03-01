@@ -9,8 +9,8 @@
     <YogaText FontSize="14" Color="@CurrentTheme.OnSurfaceVariant.ToHexColor()" TextAlign="left">
         Basic multiline input
     </YogaText>
-    <YogaScrollableView Height="100" Background="@CurrentTheme.SurfaceContainerLow.ToHexColor()" BorderRadius="8"
-                        ScrollController="@notesScrollController">
+    <YogaScrollableView AspectRatio="1" Background="@CurrentTheme.SurfaceContainerLow.ToHexColor()" BorderRadius="8"
+                        ScrollController="@notesScrollController" PreventParentScroll>
         <YogaTextArea MinHeight="100" Padding="12" Placeholder="Write multiple lines here..."
                       ValueChanged="@OnNotesChanged" OnCursorMove="@OnNotesCursorMove" />
     </YogaScrollableView>

@@ -85,10 +85,14 @@ public unsafe class Element : NativeControlComponentBase
     [Parameter]
     public string? Id { get; set; }
 
+    [Parameter]
+    public EventCallback<ElementSizeChangedEventArgs> OnSizeChange { get; set; }
+
     [Inject] protected IBrutalistRenderSurface OpenTkService { get; set; } = default!;
 
     public SKRect rect { get; set; }
     private SKPath? _hitPath;
+    private SKRect _lastLayoutRect = SKRect.Empty;
 
     private string? ResolvedBackground
     {
@@ -378,6 +382,20 @@ public unsafe class Element : NativeControlComponentBase
 
     public virtual void RenderSkia()
     {
+        // Detect size/layout changes and notify listeners for every element, including nested children.
+        var layoutRect = SKRect.Create(
+            YG.NodeLayoutGetLeft(Node),
+            YG.NodeLayoutGetTop(Node),
+            YG.NodeLayoutGetWidth(Node),
+            YG.NodeLayoutGetHeight(Node));
+
+        if (!layoutRect.Equals(_lastLayoutRect))
+        {
+            var args = new ElementSizeChangedEventArgs(this, _lastLayoutRect, layoutRect);
+            _lastLayoutRect = layoutRect;
+            _ = InvokeEventCallbackAsync(OnSizeChange, args);
+        }
+
         var canvas = OpenTkService.Canvas;
         var offset = GetOffset();
 

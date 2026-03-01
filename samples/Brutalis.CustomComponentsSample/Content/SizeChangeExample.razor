@@ -1,0 +1,74 @@
+@page "/size-change-example"
+@using BlazorBindings.Core
+@implements IDisposable
+
+<YogaView Direction="Yoga.YGFlexDirection.YGFlexDirectionColumn" Gap="16" Padding="16">
+    <YogaText Text="Element OnSizeChange Example" FontSize="24" />
+
+    <YogaText
+    Text="This demo shows OnSizeChange in action. Click the button to toggle the width of the box below. The size changes are logged and displayed."
+    WrapText="true" />
+
+    <Button Label="Toggle Width" OnClick="ToggleWidth" />
+
+    <YogaView Background="#f0f0f0" BorderRadius="8" BorderWidth="1" BorderColor="#ccc" Width="@_boxWidth" Height="100f"
+              OnSizeChange="OnSizeChanged">
+        <YogaText Text="@_sizeText" CenterText="true" />
+    </YogaView>
+
+    <YogaText Text="Size Change Log:" FontSize="16" />
+    <YogaText Text="@_logText" WrapText="true" />
+</YogaView>
+
+@code {
+    private float _boxWidth = 200;
+    private string _sizeText = "Size: ?";
+    private string _logText = "";
+    private ElementSizeChangedEventArgs? _latestSizeArgs;
+
+    private readonly Throttler _sizeTextThrottler = RateLimit.Throttle(TimeSpan.FromMilliseconds(120));
+    private readonly Debouncer _logDebouncer = RateLimit.Debounce(TimeSpan.FromMilliseconds(180));
+
+    private void ToggleWidth()
+    {
+        _boxWidth = _boxWidth == 200 ? 300 : 200;
+        StateHasChanged();
+    }
+
+    private Task OnSizeChanged(ElementSizeChangedEventArgs args)
+    {
+        _latestSizeArgs = args;
+
+        _ = _sizeTextThrottler.ExecuteAsync(() =>
+            InvokeAsync(() =>
+            {
+                if (_latestSizeArgs is null)
+                {
+                    return;
+                }
+
+                _sizeText = $"Size: {_latestSizeArgs.NewRect.Width}x{_latestSizeArgs.NewRect.Height}";
+                StateHasChanged();
+            }));
+
+        _ = _logDebouncer.ExecuteAsync(() =>
+            InvokeAsync(() =>
+            {
+                if (_latestSizeArgs is null)
+                {
+                    return;
+                }
+
+                _logText += $"Changed: {_latestSizeArgs.OldRect.Width}x{_latestSizeArgs.OldRect.Height} -> {_latestSizeArgs.NewRect.Width}x{_latestSizeArgs.NewRect.Height}\n";
+                StateHasChanged();
+            }));
+
+        return Task.CompletedTask;
+    }
+
+    public void Dispose()
+    {
+        _sizeTextThrottler.Dispose();
+        _logDebouncer.Dispose();
+    }
+}

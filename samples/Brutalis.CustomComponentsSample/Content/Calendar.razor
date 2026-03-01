@@ -1,0 +1,142 @@
+@page "/calendar"
+
+@using System.Globalization
+@using MaterialColorUtilities.Schemes
+
+<YogaView Grow="1" Direction="Yoga.YGFlexDirection.YGFlexDirectionColumn" Gap="12" JustifyContent="stretch"
+          AlignItems="stretch" Padding="16">
+    <YogaView Shrink="0" Direction="Yoga.YGFlexDirection.YGFlexDirectionRow" JustifyContent="space-between"
+              AlignItems="center" Gap="8">
+        <YogaText FontSize="28" Color="@CurrentTheme.OnBackground.ToHexColor()" TextAlign="left">
+            @MonthTitle
+        </YogaText>
+        <YogaView Direction="Yoga.YGFlexDirection.YGFlexDirectionRow" Gap="8">
+            <Button HeadIcon="@PhosphorIcons.CaretLeft" Label="Prev" Variant="Text" OnClick="@GoToPreviousMonth" />
+            <Button TailIcon="@PhosphorIcons.CaretRight" Label="Next" Variant="Text" OnClick="@GoToNextMonth" />
+        </YogaView>
+    </YogaView>
+
+    <YogaView Grow="1" Background="@CurrentTheme.SurfaceContainerLow.ToHexColor()" Padding="16" BorderRadius="12"
+              Gap="16" Direction="Yoga.YGFlexDirection.YGFlexDirectionColumn" JustifyContent="stretch" AlignItems="stretch">
+
+        <YogaView Grow="1" AlignContent="stretch" JustifyContent="stretch"
+                  Direction="Yoga.YGFlexDirection.YGFlexDirectionColumn">
+            @foreach (var week in Weeks)
+            {
+                <YogaView Grow="1" Direction="Yoga.YGFlexDirection.YGFlexDirectionRow" Basis="7" JustifyContent="stretch"
+                          AlignItems="stretch">
+                    @foreach (var day in week)
+                    {
+                        <YogaView AspectRatio="1" Grow="0" Shrink="0" Padding="10" Background="@GetDayBackground(day)"
+                                  BorderWidth="1" BorderColor="@GetDayBorder(day)" AlignItems="flex-start"
+                                  JustifyContent="flex-start">
+                            <YogaText FontSize="14" Color="@GetDayColor(day)">@day.Date.Day</YogaText>
+                        </YogaView>
+                    }
+                </YogaView>
+            }
+        </YogaView>
+    </YogaView>
+</YogaView>
+
+@code {
+    [CascadingParameter]
+    public Scheme<uint> CurrentTheme { get; set; } = default!;
+
+    private DateTime _month = new(DateTime.Today.Year, DateTime.Today.Month, 1);
+    private List<List<CalendarDay>> Weeks { get; set; } = [];
+    private List<string> WeekdayHeaders { get; set; } = [];
+
+    private string MonthTitle => _month.ToString("MMMM yyyy", CultureInfo.CurrentCulture);
+
+    protected override void OnInitialized()
+    {
+        BuildCalendar();
+    }
+
+    private void BuildCalendar()
+    {
+        var firstDayOfWeek = CultureInfo.CurrentCulture.DateTimeFormat.FirstDayOfWeek;
+
+        WeekdayHeaders = Enumerable.Range(0, 7)
+            .Select(i => CultureInfo.CurrentCulture.DateTimeFormat.AbbreviatedDayNames[((int)firstDayOfWeek + i) % 7])
+            .ToList();
+
+        var firstOfMonth = new DateTime(_month.Year, _month.Month, 1);
+        var leadingDays = ((int)firstOfMonth.DayOfWeek - (int)firstDayOfWeek + 7) % 7;
+        var gridStart = firstOfMonth.AddDays(-leadingDays);
+
+        var days = Enumerable.Range(0, 42)
+            .Select(i =>
+            {
+                var date = gridStart.AddDays(i);
+                return new CalendarDay
+                {
+                    Date = date,
+                    IsInCurrentMonth = date.Month == _month.Month && date.Year == _month.Year,
+                    IsToday = date.Date == DateTime.Today,
+                };
+            })
+            .ToList();
+
+        Weeks = days
+            .Chunk(7)
+            .Select(chunk => chunk.ToList())
+            .ToList();
+    }
+
+    private void GoToPreviousMonth()
+    {
+        _month = _month.AddMonths(-1);
+        BuildCalendar();
+        StateHasChanged();
+    }
+
+    private void GoToNextMonth()
+    {
+        _month = _month.AddMonths(1);
+        BuildCalendar();
+        StateHasChanged();
+    }
+
+    private string GetDayBackground(CalendarDay day)
+    {
+        if (day.IsToday)
+        {
+            return CurrentTheme.PrimaryContainer.ToHexColor();
+        }
+
+        return day.IsInCurrentMonth
+            ? CurrentTheme.SurfaceContainerLow.ToHexColor()
+            : CurrentTheme.SurfaceContainerLowest.ToHexColor();
+    }
+
+    private string GetDayBorder(CalendarDay day)
+    {
+        @* if (day.IsToday)
+        {
+            return CurrentTheme.Primary.ToHexColor();
+        } *@
+
+        return CurrentTheme.OutlineVariant.ToHexColor();
+    }
+
+    private string GetDayColor(CalendarDay day)
+    {
+        if (day.IsToday)
+        {
+            return CurrentTheme.OnPrimaryContainer.ToHexColor();
+        }
+
+        return day.IsInCurrentMonth
+            ? CurrentTheme.OnSurface.ToHexColor()
+            : CurrentTheme.OnSurfaceVariant.ToHexColor();
+    }
+
+    private sealed class CalendarDay
+    {
+        public required DateTime Date { get; init; }
+        public required bool IsInCurrentMonth { get; init; }
+        public required bool IsToday { get; init; }
+    }
+}
