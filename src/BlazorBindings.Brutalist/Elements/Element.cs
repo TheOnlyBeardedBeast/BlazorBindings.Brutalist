@@ -444,8 +444,7 @@ public unsafe class Element : NativeControlComponentBase
             Console.WriteLine($"[RouteHost] x={rect.Left}, y={rect.Top}, w={rect.Width}, h={rect.Height}, children={YG.NodeGetChildCount(Node)}");
         }
 
-        var overflow = StyleParsers.ParseOverflow(Overflow);
-        var shouldClip = overflow == YGOverflow.YGOverflowHidden;
+        var shouldClip = IsOverflowHidden();
 
         if (shouldClip)
         {
@@ -699,20 +698,33 @@ public unsafe class Element : NativeControlComponentBase
             return false;
         }
 
+        var blockedByTopChild = false;
+
         foreach (var childElement in GetChildrenInHitTestOrder(point))
         {
             if (childElement.DispatchClick(point))
             {
                 return true;
             }
+
+            if (childElement.HitTest(point) && childElement.ShouldBlockClickThrough())
+            {
+                blockedByTopChild = true;
+                break;
+            }
         }
 
-        if (!IsInteractive)
+        if (IsInteractive)
         {
-            return BlocksClickThrough;
+            return HandleClick(point);
         }
 
-        return HandleClick(point);
+        if (blockedByTopChild)
+        {
+            return true;
+        }
+
+        return false;
     }
 
     public virtual bool DispatchTextInput(string text)
@@ -800,6 +812,12 @@ public unsafe class Element : NativeControlComponentBase
             {
                 return true;
             }
+
+            if (childElement.HitTest(point) && childElement.ShouldBlockCursorThrough())
+            {
+                isPointer = false;
+                return true;
+            }
         }
 
         if (TryGetCursorPreference(out isPointer))
@@ -810,6 +828,12 @@ public unsafe class Element : NativeControlComponentBase
         if (IsInteractive)
         {
             isPointer = true;
+            return true;
+        }
+
+        if (BlocksCursorThrough)
+        {
+            isPointer = false;
             return true;
         }
 
@@ -933,12 +957,23 @@ public unsafe class Element : NativeControlComponentBase
         return BlocksFocusThrough;
     }
 
+    public bool ShouldBlockClickThrough()
+    {
+        return BlocksClickThrough;
+    }
+
+    public bool ShouldBlockCursorThrough()
+    {
+        return BlocksCursorThrough;
+    }
+
     protected virtual bool BlocksClickThrough
         => !string.IsNullOrWhiteSpace(Background)
         || !string.IsNullOrWhiteSpace(BorderWidth)
         || !string.IsNullOrWhiteSpace(OutlineWidth);
 
     protected virtual bool BlocksFocusThrough => BlocksClickThrough;
+    protected virtual bool BlocksCursorThrough => BlocksClickThrough;
 
     protected List<Element> GetChildrenInRenderOrder()
     {
@@ -1043,6 +1078,11 @@ public unsafe class Element : NativeControlComponentBase
     private bool IsOverflowHidden()
     {
         var overflow = StyleParsers.ParseOverflow(Overflow);
+        if (!overflow.HasValue)
+        {
+            return true;
+        }
+
         return overflow == YGOverflow.YGOverflowHidden;
     }
 

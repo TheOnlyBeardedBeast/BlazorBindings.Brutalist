@@ -165,7 +165,7 @@ internal static class StyleParsers
             "visible" => YGOverflow.YGOverflowVisible,
             "hidden" => YGOverflow.YGOverflowHidden,
             "scroll" => YGOverflow.YGOverflowScroll,
-            _ => null,
+            _ => YGOverflow.YGOverflowVisible,
         };
     }
 

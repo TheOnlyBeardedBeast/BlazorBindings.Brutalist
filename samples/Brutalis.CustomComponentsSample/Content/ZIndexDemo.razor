@@ -10,9 +10,9 @@
         </YogaText>
     </YogaView>
 
-    <YogaView Direction="Yoga.YGFlexDirection.YGFlexDirectionRow" Gap="8" Wrap="wrap" Shrink="0">
+    <YogaView Overflow="visible" Direction="Yoga.YGFlexDirection.YGFlexDirectionRow" Gap="8" Wrap="wrap" Shrink="0">
         <Button Label="Toggle Popup (Z=30)" OnClick="TogglePopup" />
-        <YogaView>
+        <YogaView Overflow="visible">
             <Button Label="Toggle Menu (Z=40)" OnClick="ToggleMenu" />
             @if (_showMenu)
             {

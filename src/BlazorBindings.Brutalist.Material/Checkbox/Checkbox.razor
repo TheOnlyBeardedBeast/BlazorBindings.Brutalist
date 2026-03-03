@@ -5,7 +5,7 @@
                    Disabled="@Disabled" Cursor="@(Disabled ? "default" : null)">
     <YogaView Width="@ResolvedSize" Height="@ResolvedSize" Background="@ResolvedBoxBackground"
               BorderColor="@ResolvedBorderColor" BorderWidth="2" BorderRadius="@ResolvedRadius" JustifyContent="center"
-              AlignItems="center" Cursor="@(Disabled ? "default" : null)">
+              AlignItems="center" Cursor="@(Disabled ? "default" : "pointer")">
         @if (Checked)
         {
             <PhosphorIcon Icon="PhosphorIcons.Check" Size="@ResolvedIconSize" Color="@ResolvedCheckColor" />

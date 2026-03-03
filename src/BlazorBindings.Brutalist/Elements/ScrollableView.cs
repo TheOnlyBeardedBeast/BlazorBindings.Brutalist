@@ -27,20 +27,9 @@ public unsafe class YogaScrollableView : YogaView
     private float _contentHeight;
     private ScrollController? _subscribedScrollController;
 
-    public YogaScrollableView()
-    {
-        Overflow ??= "hidden";
-    }
-
     public override Task SetParametersAsync(ParameterView parameters)
     {
         var task = base.SetParametersAsync(parameters);
-
-        // Force clipping so content can scroll inside viewport.
-        if (string.IsNullOrWhiteSpace(Overflow))
-        {
-            Overflow = "hidden";
-        }
 
         // (re)subscribe to controller events
         if (!ReferenceEquals(_subscribedScrollController, ScrollController))
@@ -80,6 +69,7 @@ public unsafe class YogaScrollableView : YogaView
         }
 
         var contentPoint = ToContentPoint(point);
+        var blockedByTopChild = false;
 
         foreach (var childElement in GetChildrenInHitTestOrder(contentPoint))
         {
@@ -87,14 +77,25 @@ public unsafe class YogaScrollableView : YogaView
             {
                 return true;
             }
+
+            if (childElement.HitTest(contentPoint) && childElement.ShouldBlockClickThrough())
+            {
+                blockedByTopChild = true;
+                break;
+            }
         }
 
-        if (!IsInteractive)
+        if (IsInteractive)
         {
-            return BlocksClickThrough;
+            return HandleClick(contentPoint);
         }
 
-        return HandleClick(contentPoint);
+        if (blockedByTopChild)
+        {
+            return true;
+        }
+
+        return false;
     }
 
     public override bool TryResolveCursor(SKPoint point, out bool isPointer)
@@ -114,6 +115,12 @@ public unsafe class YogaScrollableView : YogaView
             {
                 return true;
             }
+
+            if (childElement.HitTest(contentPoint) && childElement.ShouldBlockCursorThrough())
+            {
+                isPointer = false;
+                return true;
+            }
         }
 
         if (TryGetCursorPreference(out isPointer))
@@ -124,6 +131,12 @@ public unsafe class YogaScrollableView : YogaView
         if (IsInteractive)
         {
             isPointer = true;
+            return true;
+        }
+
+        if (BlocksCursorThrough)
+        {
+            isPointer = false;
             return true;
         }
 
