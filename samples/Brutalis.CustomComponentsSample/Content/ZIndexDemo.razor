@@ -1,0 +1,102 @@
+@page "/zindex"
+
+<YogaView Direction="Yoga.YGFlexDirection.YGFlexDirectionColumn" Gap="16" AlignItems="stretch" Position="relative"
+          MinHeight="700">
+    <YogaView Gap="8" Shrink="0">
+        <YogaText FontSize="28" TextAlign="left">ZIndex Demo</YogaText>
+        <YogaText FontSize="14" TextAlign="left" WrapText>
+            This page demonstrates layered rendering and interaction. Open the popup, menu, and modal to verify
+            that higher ZIndex values render above other content and capture input first.
+        </YogaText>
+    </YogaView>
+
+    <YogaView Direction="Yoga.YGFlexDirection.YGFlexDirectionRow" Gap="8" Wrap="wrap" Shrink="0">
+        <Button Label="Toggle Popup (Z=30)" OnClick="TogglePopup" />
+        <YogaView>
+            <Button Label="Toggle Menu (Z=40)" OnClick="ToggleMenu" />
+            @if (_showMenu)
+            {
+                <YogaView Position="absolute" Top="56" Width="220" Padding="8" Gap="4" BorderRadius="10" BorderWidth="1"
+                          BorderColor="#93c5fd" Background="#dbeafe" ZIndex="40">
+                    <YogaText FontSize="14" TextAlign="left">Menu Layer (Z=40)</YogaText>
+                    <Button Label="Menu Item 1" Size="S" Variant="Text" OnClick='@(() => SelectItem("Item 1"))' />
+                    <Button Label="Menu Item 2" Size="S" Variant="Text" OnClick='@(() => SelectItem("Item 2"))' />
+                    <Button Label="Menu Item 3" Size="S" Variant="Text" OnClick='@(() => SelectItem("Item 3"))' />
+                </YogaView>
+            }
+        </YogaView>
+        <Button Label="Toggle Modal (Z=100)" OnClick="ToggleModal" />
+    </YogaView>
+
+    <YogaView Background="#f4f4f5" BorderRadius="12" BorderColor="#d4d4d8" BorderWidth="1" Padding="16" Gap="8"
+              MinHeight="420" Position="relative">
+        <YogaText FontSize="16" TextAlign="left">Base content layer (Z=0)</YogaText>
+        <YogaText FontSize="13" TextAlign="left" WrapText>
+            Interact with the controls above. Overlays are absolutely positioned and can be rendered anywhere while
+            staying on top via ZIndex.
+        </YogaText>
+
+        <YogaView Direction="Yoga.YGFlexDirection.YGFlexDirectionRow" Gap="8" Wrap="wrap">
+            <Button Label="Background Action A" Variant="Outlined" OnClick="IncBackground" />
+            <Button Label="Background Action B" Variant="Outlined" OnClick="IncBackground" />
+            <YogaText FontSize="13" TextAlign="left">Background clicks: @_backgroundClicks</YogaText>
+        </YogaView>
+
+        @if (_showPopup)
+        {
+            <YogaView Position="absolute" Top="120" Left="24" Width="320" Padding="12" Gap="8" BorderRadius="12"
+                      BorderWidth="1" BorderColor="#a78bfa" Background="#ede9fe" ZIndex="30">
+                <YogaText FontSize="15" TextAlign="left">Popup Layer (Z=30)</YogaText>
+                <YogaText FontSize="13" TextAlign="left" WrapText>
+                    This popup is rendered above base content.
+                </YogaText>
+                <Button Label="Close Popup" Size="S" OnClick="TogglePopup" />
+            </YogaView>
+        }
+
+        @if (_showModal)
+        {
+            <YogaView Position="absolute" Top="0" Left="0" Right="0" Bottom="0" Background="#00000088"
+                      JustifyContent="center" AlignItems="center" ZIndex="100">
+                <YogaView Width="420" Background="#ffffff" BorderRadius="16" BorderWidth="1" BorderColor="#d1d5db"
+                          Padding="16" Gap="12">
+                    <YogaText FontSize="22" TextAlign="left">Modal Layer (Z=100)</YogaText>
+                    <YogaText FontSize="14" TextAlign="left" WrapText>
+                        This is rendered above popup/menu and blocks interaction beneath it.
+                    </YogaText>
+                    <YogaView Direction="Yoga.YGFlexDirection.YGFlexDirectionRow" JustifyContent="flex-end" Gap="8">
+                        <Button Label="Close" OnClick="ToggleModal" />
+                    </YogaView>
+                </YogaView>
+            </YogaView>
+        }
+
+
+
+        <YogaView ZIndex="101" Position="absolute" Bottom="16" Left="16" Right="16" Background="#ffffff"
+                  BorderRadius="10" BorderWidth="1" BorderColor="#e5e7eb" Padding="10">
+            <YogaText FontSize="13" TextAlign="left">Selected menu item: @_selectedItem</YogaText>
+        </YogaView>
+    </YogaView>
+
+
+</YogaView>
+
+@code {
+    private bool _showPopup;
+    private bool _showMenu;
+    private bool _showModal;
+    private int _backgroundClicks;
+    private string _selectedItem = "None";
+
+    private void TogglePopup() => _showPopup = !_showPopup;
+    private void ToggleMenu() => _showMenu = !_showMenu;
+    private void ToggleModal() => _showModal = !_showModal;
+    private void IncBackground() => _backgroundClicks++;
+
+    private void SelectItem(string item)
+    {
+        _selectedItem = item;
+        _showMenu = false;
+    }
+}

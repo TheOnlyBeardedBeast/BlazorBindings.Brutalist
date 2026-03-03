@@ -1,5 +1,4 @@
 using SkiaSharp;
-using System.Runtime.InteropServices;
 using Yoga;
 
 namespace BlazorBindings.Brutalist.Elements;
@@ -82,16 +81,17 @@ public unsafe class YogaScrollableView : YogaView
 
         var contentPoint = ToContentPoint(point);
 
-        for (nuint i = YG.NodeGetChildCount(Node); i > 0; i--)
+        foreach (var childElement in GetChildrenInHitTestOrder(contentPoint))
         {
-            var childNode = YG.NodeGetChild(Node, i - 1);
-            var ptr = YG.NodeGetContext(childNode);
-            var handle = GCHandle.FromIntPtr((IntPtr)ptr);
-
-            if (handle.Target is Element childElement && childElement.DispatchClick(contentPoint))
+            if (childElement.DispatchClick(contentPoint))
             {
                 return true;
             }
+        }
+
+        if (!IsInteractive)
+        {
+            return BlocksClickThrough;
         }
 
         return HandleClick(contentPoint);
@@ -108,17 +108,8 @@ public unsafe class YogaScrollableView : YogaView
 
         var contentPoint = ToContentPoint(point);
 
-        for (nuint i = YG.NodeGetChildCount(Node); i > 0; i--)
+        foreach (var childElement in GetChildrenInHitTestOrder(contentPoint))
         {
-            var childNode = YG.NodeGetChild(Node, i - 1);
-            var ptr = YG.NodeGetContext(childNode);
-            var handle = GCHandle.FromIntPtr((IntPtr)ptr);
-
-            if (handle.Target is not Element childElement)
-            {
-                continue;
-            }
-
             if (childElement.TryResolveCursor(contentPoint, out isPointer))
             {
                 return true;
@@ -148,13 +139,9 @@ public unsafe class YogaScrollableView : YogaView
 
         var contentPoint = ToContentPoint(point);
 
-        for (nuint i = YG.NodeGetChildCount(Node); i > 0; i--)
+        foreach (var childElement in GetChildrenInHitTestOrder(contentPoint))
         {
-            var childNode = YG.NodeGetChild(Node, i - 1);
-            var ptr = YG.NodeGetContext(childNode);
-            var handle = GCHandle.FromIntPtr((IntPtr)ptr);
-
-            if (handle.Target is not Element childElement)
+            if (!childElement.HitTest(contentPoint))
             {
                 continue;
             }
@@ -163,6 +150,11 @@ public unsafe class YogaScrollableView : YogaView
             if (active is not null)
             {
                 return active;
+            }
+
+            if (childElement.ShouldBlockFocusThrough())
+            {
+                return null;
             }
         }
 
@@ -178,13 +170,9 @@ public unsafe class YogaScrollableView : YogaView
 
         var contentPoint = ToContentPoint(point);
 
-        for (nuint i = YG.NodeGetChildCount(Node); i > 0; i--)
+        foreach (var childElement in GetChildrenInHitTestOrder(contentPoint))
         {
-            var childNode = YG.NodeGetChild(Node, i - 1);
-            var ptr = YG.NodeGetContext(childNode);
-            var handle = GCHandle.FromIntPtr((IntPtr)ptr);
-
-            if (handle.Target is Element childElement && childElement.DispatchScroll(contentPoint, deltaY))
+            if (childElement.DispatchScroll(contentPoint, deltaY))
             {
                 return true;
             }
@@ -240,23 +228,17 @@ public unsafe class YogaScrollableView : YogaView
         var visibleTop = _scrollY - overscan;
         var visibleBottom = _scrollY + _viewportHeight + overscan;
 
-        for (nuint i = 0; i < YG.NodeGetChildCount(Node); i++)
+        foreach (var childElement in GetChildrenInRenderOrder())
         {
-            var childNode = YG.NodeGetChild(Node, i);
-            var childTop = YG.NodeLayoutGetTop(childNode);
-            var childBottom = childTop + YG.NodeLayoutGetHeight(childNode);
+            var childTop = YG.NodeLayoutGetTop(childElement.Node);
+            var childBottom = childTop + YG.NodeLayoutGetHeight(childElement.Node);
 
             if (childBottom < visibleTop || childTop > visibleBottom)
             {
                 continue;
             }
 
-            var ptr = YG.NodeGetContext(childNode);
-            var handle = GCHandle.FromIntPtr((IntPtr)ptr);
-            if (handle.Target is Element childElement)
-            {
-                childElement.RenderSkia();
-            }
+            childElement.RenderSkia();
         }
 
         canvas.Restore();

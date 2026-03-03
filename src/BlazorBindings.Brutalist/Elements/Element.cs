@@ -7,6 +7,10 @@ namespace BlazorBindings.Brutalist.Elements;
 
 public unsafe class Element : NativeControlComponentBase
 {
+    private static readonly List<(Element element, int sequence, SKMatrix matrix, SKRectI clip)> DeferredZIndexElements = [];
+    private static bool _isDeferredZIndexRenderPass;
+    private static int _deferredSequence;
+
     [Parameter]
     public string? Background { get; set; }
 
@@ -80,6 +84,8 @@ public unsafe class Element : NativeControlComponentBase
     public string? Cursor { get; set; }
     [Parameter]
     public bool? Focusable { get; set; }
+    [Parameter]
+    public int ZIndex { get; set; }
     public YGNode* Node { get; } = YG.NodeNew();
 
     [Parameter]
@@ -141,7 +147,6 @@ public unsafe class Element : NativeControlComponentBase
         // Console.WriteLine("View created");
         var handle = GCHandle.Alloc(this);
         YG.NodeSetContext(Node, (void*)GCHandle.ToIntPtr(handle));
-
         // Use web-like default behavior so flex items can shrink when space is constrained.
         // This avoids children in row layouts taking full window width unless explicitly prevented.
         YG.NodeStyleSetFlexShrink(Node, 1f);
@@ -375,13 +380,45 @@ public unsafe class Element : NativeControlComponentBase
         //     var element = (Element)handle.Target!;
         // }
 
+        DeferredZIndexElements.Clear();
+        _deferredSequence = 0;
+        _isDeferredZIndexRenderPass = false;
+
         RenderSkia();
+
+        if (DeferredZIndexElements.Count > 0)
+        {
+            _isDeferredZIndexRenderPass = true;
+
+            foreach (var entry in DeferredZIndexElements
+                         .OrderBy(e => e.element.ZIndex)
+                         .ThenBy(e => e.sequence))
+            {
+                var canvas = OpenTkService.Canvas;
+                canvas.Save();
+                canvas.ResetMatrix();
+                canvas.ClipRect(SKRect.Create(entry.clip.Left, entry.clip.Top, entry.clip.Width, entry.clip.Height));
+                canvas.SetMatrix(entry.matrix);
+                entry.element.RenderSkia();
+                canvas.Restore();
+            }
+
+            _isDeferredZIndexRenderPass = false;
+            DeferredZIndexElements.Clear();
+        }
     }
 
     public virtual void AddChild(object child, int physicalSiblingIndex) { }
 
     public virtual void RenderSkia()
     {
+        if (!_isDeferredZIndexRenderPass && ZIndex > 0)
+        {
+            var deferCanvas = OpenTkService.Canvas;
+            DeferredZIndexElements.Add((this, _deferredSequence++, deferCanvas.TotalMatrix, deferCanvas.DeviceClipBounds));
+            return;
+        }
+
         // Detect size/layout changes and notify listeners for every element, including nested children.
         var layoutRect = SKRect.Create(
             YG.NodeLayoutGetLeft(Node),
@@ -657,18 +694,14 @@ public unsafe class Element : NativeControlComponentBase
 
     public virtual bool DispatchClick(SKPoint point)
     {
-        if (!ContainsPoint(point))
+        if (!CanParticipateInHitTesting(point))
         {
             return false;
         }
 
-        for (nuint i = YG.NodeGetChildCount(Node); i > 0; i--)
+        foreach (var childElement in GetChildrenInHitTestOrder(point))
         {
-            var childNode = YG.NodeGetChild(Node, i - 1);
-            var ptr = YG.NodeGetContext(childNode);
-            var handle = GCHandle.FromIntPtr((IntPtr)ptr);
-
-            if (handle.Target is Element childElement && childElement.DispatchClick(point))
+            if (childElement.DispatchClick(point))
             {
                 return true;
             }
@@ -676,7 +709,7 @@ public unsafe class Element : NativeControlComponentBase
 
         if (!IsInteractive)
         {
-            return false;
+            return BlocksClickThrough;
         }
 
         return HandleClick(point);
@@ -699,19 +732,15 @@ public unsafe class Element : NativeControlComponentBase
 
     public virtual bool DispatchScroll(SKPoint point, float deltaY)
     {
-        for (nuint i = YG.NodeGetChildCount(Node); i > 0; i--)
+        foreach (var childElement in GetChildrenInHitTestOrder(point))
         {
-            var childNode = YG.NodeGetChild(Node, i - 1);
-            var ptr = YG.NodeGetContext(childNode);
-            var handle = GCHandle.FromIntPtr((IntPtr)ptr);
-
-            if (handle.Target is Element childElement && childElement.DispatchScroll(point, deltaY))
+            if (childElement.DispatchScroll(point, deltaY))
             {
                 return true;
             }
         }
 
-        if (!ContainsPoint(point))
+        if (!CanParticipateInHitTesting(point))
         {
             return false;
         }
@@ -727,18 +756,14 @@ public unsafe class Element : NativeControlComponentBase
 
     public virtual Element? ResolveActiveElement(SKPoint point)
     {
-        if (!ContainsPoint(point))
+        if (!CanParticipateInHitTesting(point))
         {
             return null;
         }
 
-        for (nuint i = YG.NodeGetChildCount(Node); i > 0; i--)
+        foreach (var childElement in GetChildrenInHitTestOrder(point))
         {
-            var childNode = YG.NodeGetChild(Node, i - 1);
-            var ptr = YG.NodeGetContext(childNode);
-            var handle = GCHandle.FromIntPtr((IntPtr)ptr);
-
-            if (handle.Target is not Element childElement)
+            if (!childElement.HitTest(point))
             {
                 continue;
             }
@@ -747,6 +772,13 @@ public unsafe class Element : NativeControlComponentBase
             if (activeElement is not null)
             {
                 return activeElement;
+            }
+
+            // Top-most child was hit but has no focus target.
+            // Fall through only when this child allows focus-through.
+            if (childElement.BlocksFocusThrough)
+            {
+                return null;
             }
         }
 
@@ -757,22 +789,13 @@ public unsafe class Element : NativeControlComponentBase
     {
         isPointer = false;
 
-        if (!ContainsPoint(point))
+        if (!CanParticipateInHitTesting(point))
         {
             return false;
         }
 
-        for (nuint i = YG.NodeGetChildCount(Node); i > 0; i--)
+        foreach (var childElement in GetChildrenInHitTestOrder(point))
         {
-            var childNode = YG.NodeGetChild(Node, i - 1);
-            var ptr = YG.NodeGetContext(childNode);
-            var handle = GCHandle.FromIntPtr((IntPtr)ptr);
-
-            if (handle.Target is not Element childElement)
-            {
-                continue;
-            }
-
             if (childElement.TryResolveCursor(point, out isPointer))
             {
                 return true;
@@ -795,22 +818,13 @@ public unsafe class Element : NativeControlComponentBase
 
     private Element? FindInteractiveElement(SKPoint point)
     {
-        if (!ContainsPoint(point))
+        if (!CanParticipateInHitTesting(point))
         {
             return null;
         }
 
-        for (nuint i = YG.NodeGetChildCount(Node); i > 0; i--)
+        foreach (var childElement in GetChildrenInHitTestOrder(point))
         {
-            var childNode = YG.NodeGetChild(Node, i - 1);
-            var ptr = YG.NodeGetContext(childNode);
-            var handle = GCHandle.FromIntPtr((IntPtr)ptr);
-
-            if (handle.Target is not Element childElement)
-            {
-                continue;
-            }
-
             var interactiveElement = childElement.FindInteractiveElement(point);
             if (interactiveElement is not null)
             {
@@ -882,6 +896,156 @@ public unsafe class Element : NativeControlComponentBase
         return rect.Contains(point);
     }
 
+    public bool HitTest(SKPoint point)
+    {
+        return ContainsPoint(point);
+    }
+
+    public bool HitTestDeep(SKPoint point)
+    {
+        if (ContainsPoint(point))
+        {
+            return true;
+        }
+
+        if (IsOverflowHidden())
+        {
+            return false;
+        }
+
+        for (nuint i = 0; i < YG.NodeGetChildCount(Node); i++)
+        {
+            var childNode = YG.NodeGetChild(Node, i);
+            var ptr = YG.NodeGetContext(childNode);
+            var handle = GCHandle.FromIntPtr((IntPtr)ptr);
+
+            if (handle.Target is Element childElement && childElement.HitTestDeep(point))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public bool ShouldBlockFocusThrough()
+    {
+        return BlocksFocusThrough;
+    }
+
+    protected virtual bool BlocksClickThrough
+        => !string.IsNullOrWhiteSpace(Background)
+        || !string.IsNullOrWhiteSpace(BorderWidth)
+        || !string.IsNullOrWhiteSpace(OutlineWidth);
+
+    protected virtual bool BlocksFocusThrough => BlocksClickThrough;
+
+    protected List<Element> GetChildrenInRenderOrder()
+    {
+        var children = new List<(Element element, int zIndex, int index)>();
+
+        for (nuint i = 0; i < YG.NodeGetChildCount(Node); i++)
+        {
+            var childNode = YG.NodeGetChild(Node, i);
+            var ptr = YG.NodeGetContext(childNode);
+            var handle = GCHandle.FromIntPtr((IntPtr)ptr);
+
+            if (handle.Target is Element childElement)
+            {
+                children.Add((childElement, childElement.ZIndex, (int)i));
+            }
+        }
+
+        children.Sort((a, b) =>
+        {
+            var zCompare = a.zIndex.CompareTo(b.zIndex);
+            return zCompare != 0 ? zCompare : a.index.CompareTo(b.index);
+        });
+
+        return children.Select(c => c.element).ToList();
+    }
+
+    protected List<Element> GetChildrenInHitTestOrder(SKPoint point)
+    {
+        var children = new List<(Element element, int effectiveZIndex, int index)>();
+
+        for (nuint i = 0; i < YG.NodeGetChildCount(Node); i++)
+        {
+            var childNode = YG.NodeGetChild(Node, i);
+            var ptr = YG.NodeGetContext(childNode);
+            var handle = GCHandle.FromIntPtr((IntPtr)ptr);
+
+            if (handle.Target is Element childElement)
+            {
+                var childMaxZ = childElement.GetMaxSubtreeZAtPoint(point);
+                if (childMaxZ.HasValue)
+                {
+                    children.Add((childElement, childMaxZ.Value, (int)i));
+                }
+            }
+        }
+
+        children.Sort((a, b) =>
+        {
+            var zCompare = b.effectiveZIndex.CompareTo(a.effectiveZIndex);
+            return zCompare != 0 ? zCompare : b.index.CompareTo(a.index);
+        });
+
+        return children.Select(c => c.element).ToList();
+    }
+
+    private int? GetMaxSubtreeZAtPoint(SKPoint point)
+    {
+        var selfHit = ContainsPoint(point);
+        int? maxZ = selfHit ? ZIndex : null;
+
+        if (IsOverflowHidden() && !selfHit)
+        {
+            return maxZ;
+        }
+
+        for (nuint i = 0; i < YG.NodeGetChildCount(Node); i++)
+        {
+            var childNode = YG.NodeGetChild(Node, i);
+            var ptr = YG.NodeGetContext(childNode);
+            var handle = GCHandle.FromIntPtr((IntPtr)ptr);
+
+            if (handle.Target is not Element childElement)
+            {
+                continue;
+            }
+
+            var childMax = childElement.GetMaxSubtreeZAtPoint(point);
+            if (childMax.HasValue && (!maxZ.HasValue || childMax.Value > maxZ.Value))
+            {
+                maxZ = childMax.Value;
+            }
+        }
+
+        return maxZ;
+    }
+
+    private bool CanParticipateInHitTesting(SKPoint point)
+    {
+        if (ContainsPoint(point))
+        {
+            return true;
+        }
+
+        if (IsOverflowHidden())
+        {
+            return false;
+        }
+
+        return HitTestDeep(point);
+    }
+
+    private bool IsOverflowHidden()
+    {
+        var overflow = StyleParsers.ParseOverflow(Overflow);
+        return overflow == YGOverflow.YGOverflowHidden;
+    }
+
     public (float top, float right, float bottom, float left) GetOffset()
     {
         var parent = YG.NodeGetParent(Node);
@@ -902,13 +1066,8 @@ public unsafe class Element : NativeControlComponentBase
 
     protected virtual void RenderChildren()
     {
-
-        for (nuint i = 0; i < YG.NodeGetChildCount(Node); i++)
+        foreach (var element in GetChildrenInRenderOrder())
         {
-            YGNode* node = YG.NodeGetChild(Node, i);
-            var ptr = YG.NodeGetContext(node);
-            var handle = GCHandle.FromIntPtr((IntPtr)ptr);
-            var element = (Element)handle.Target!;
             element.RenderSkia();
         }
     }
