@@ -233,7 +233,32 @@ public unsafe class YogaScrollableView : YogaView
         var canvas = OpenTkService.Canvas;
         canvas.Save();
         canvas.Translate(0, -_scrollY);
-        base.RenderChildren();
+
+        // Render only children intersecting the current scroll viewport.
+        // This keeps culling local to scroll containers and avoids global layout side effects.
+        const float overscan = 64f;
+        var visibleTop = _scrollY - overscan;
+        var visibleBottom = _scrollY + _viewportHeight + overscan;
+
+        for (nuint i = 0; i < YG.NodeGetChildCount(Node); i++)
+        {
+            var childNode = YG.NodeGetChild(Node, i);
+            var childTop = YG.NodeLayoutGetTop(childNode);
+            var childBottom = childTop + YG.NodeLayoutGetHeight(childNode);
+
+            if (childBottom < visibleTop || childTop > visibleBottom)
+            {
+                continue;
+            }
+
+            var ptr = YG.NodeGetContext(childNode);
+            var handle = GCHandle.FromIntPtr((IntPtr)ptr);
+            if (handle.Target is Element childElement)
+            {
+                childElement.RenderSkia();
+            }
+        }
+
         canvas.Restore();
     }
 
