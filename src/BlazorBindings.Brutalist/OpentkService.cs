@@ -21,6 +21,9 @@ public sealed class OpentkService : IBrutalistRenderSurface, IDisposable
     private int _framebufferWidth;
     private int _framebufferHeight;
     private double _elapsedSeconds;
+    private readonly object _resizeRequestLock = new();
+    private int? _pendingResizeWidth;
+    private int? _pendingResizeHeight;
 
     public event Action? SurfaceResized;
     public event Action<SKPoint>? MouseClicked;
@@ -143,6 +146,18 @@ public sealed class OpentkService : IBrutalistRenderSurface, IDisposable
         _window.Cursor = enabled ? MouseCursor.PointingHand : MouseCursor.Default;
     }
 
+    public void ResizeSurface(int width, int height)
+    {
+        var safeWidth = Math.Max(1, width);
+        var safeHeight = Math.Max(1, height);
+
+        lock (_resizeRequestLock)
+        {
+            _pendingResizeWidth = safeWidth;
+            _pendingResizeHeight = safeHeight;
+        }
+    }
+
     public void Start()
     {
         Console.WriteLine("[OpentkService.Start] Starting window...");
@@ -236,6 +251,8 @@ public sealed class OpentkService : IBrutalistRenderSurface, IDisposable
 
     private void OnRenderFrame(FrameEventArgs args)
     {
+        ApplyPendingResizeRequest();
+
         var deltaSeconds = (float)Math.Max(0d, args.Time);
         _elapsedSeconds += deltaSeconds;
         FrameTick?.Invoke(deltaSeconds, _elapsedSeconds);
@@ -264,6 +281,31 @@ public sealed class OpentkService : IBrutalistRenderSurface, IDisposable
         _window.SwapBuffers();
 
         // SaveSurfaceToFile("frame.png");
+    }
+
+    private void ApplyPendingResizeRequest()
+    {
+        int? requestedWidth;
+        int? requestedHeight;
+
+        lock (_resizeRequestLock)
+        {
+            requestedWidth = _pendingResizeWidth;
+            requestedHeight = _pendingResizeHeight;
+            _pendingResizeWidth = null;
+            _pendingResizeHeight = null;
+        }
+
+        if (!requestedWidth.HasValue || !requestedHeight.HasValue)
+        {
+            return;
+        }
+
+        var targetSize = new Vector2i(requestedWidth.Value, requestedHeight.Value);
+        if (_window.ClientSize != targetSize)
+        {
+            _window.ClientSize = targetSize;
+        }
     }
 
     private void EmitScrollDeltaFromMouseState()

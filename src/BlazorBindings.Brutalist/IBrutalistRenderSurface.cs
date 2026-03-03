@@ -21,6 +21,7 @@ public interface IBrutalistRenderSurface
     SKCanvas Canvas { get; }
 
     void Start();
+    void ResizeSurface(int width, int height);
     void SetPointerCursor(bool enabled);
     void LockSurface(Action<SKCanvas> draw);
     void SaveSurfaceToFile(string filename);

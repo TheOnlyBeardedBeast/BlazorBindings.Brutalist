@@ -50,6 +50,11 @@ public sealed class ImageRenderService : IBrutalistRenderSurface, IDisposable
         // No cursor in headless mode.
     }
 
+    public void ResizeSurface(int width, int height)
+    {
+        Resize(width, height);
+    }
+
     public void Resize(int width, int height, float? dpiScale = null)
     {
         var safeWidth = Math.Max(1, width);

@@ -5,12 +5,13 @@
 @using Microsoft.AspNetCore.Components.Routing
 @inherits NavigationAwareComponentBase
 
-<YogaWindow Direction="Yoga.YGFlexDirection.YGFlexDirectionRow" Background="@CurrentTheme.Background.ToHexColor()"
-            AlignItems="stretch" Position="relative">
+<YogaWindow Width="@width" Height="@height" Direction="Yoga.YGFlexDirection.YGFlexDirectionRow"
+            Background="@CurrentTheme.Background.ToHexColor()" AlignItems="stretch" Position="relative">
     <SideNav />
     <YogaScrollableView Padding="24" Grow="1" Gap="16">
         <YogaView Padding="8 12" Shrink="0">
             <YogaText FontSize="12" Color="@CurrentTheme.OnSurfaceVariant.ToHexColor()">URI: @Navigation.Uri</YogaText>
+            <Button Label="Resize window" OnClick="@resize" />
         </YogaView>
         <Router AppAssembly="@typeof(AppContent).Assembly">
             <Found Context="routeData">
@@ -55,6 +56,15 @@
 
 @code
 {
+    private int width = 1200;
+    private int height = 600;
+
+    private void resize()
+    {
+        var rand = new Random();
+        width = rand.Next(800, 1400);
+        height = rand.Next(500, 900);
+    }
     [Parameter]
     public EventCallback UseDarkTheme { get; set; }
 

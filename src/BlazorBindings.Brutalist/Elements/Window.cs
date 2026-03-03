@@ -5,12 +5,15 @@ namespace BlazorBindings.Brutalist.Elements;
 public class YogaWindow : YogaView, IDisposable
 {
     private bool _subscribed;
+    private int? _lastRequestedWidth;
+    private int? _lastRequestedHeight;
 
     public override async Task SetParametersAsync(ParameterView parameters)
     {
         await base.SetParametersAsync(parameters);
 
         EnsureSubscribed();
+        ApplyRequestedWindowSize();
         ApplyWindowSize();
     }
 
@@ -32,6 +35,28 @@ public class YogaWindow : YogaView, IDisposable
             ApplyWindowSize();
             StateHasChanged();
         });
+    }
+
+    private void ApplyRequestedWindowSize()
+    {
+        // YogaWindow uses inherited Width/Height parameters as desired app window size.
+        // If provided and changed, request a surface resize.
+        if (!Width.HasValue && !Height.HasValue)
+        {
+            return;
+        }
+
+        var requestedWidth = Math.Max(1, (int)MathF.Round(Width ?? OpenTkService.Width));
+        var requestedHeight = Math.Max(1, (int)MathF.Round(Height ?? OpenTkService.Height));
+
+        if (_lastRequestedWidth == requestedWidth && _lastRequestedHeight == requestedHeight)
+        {
+            return;
+        }
+
+        _lastRequestedWidth = requestedWidth;
+        _lastRequestedHeight = requestedHeight;
+        OpenTkService.ResizeSurface(requestedWidth, requestedHeight);
     }
 
     private unsafe void ApplyWindowSize()
