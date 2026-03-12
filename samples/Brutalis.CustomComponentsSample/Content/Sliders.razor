@@ -34,7 +34,7 @@
             Default range from 0 to 100 with step 1. Click or drag across the track.
         </YogaText>
 
-        <Slider Label="Volume" @bind-Value="Volume" Segmented="false" />
+        <Slider ShowDragHandle="true" Label="Volume" @bind-Value="Volume" Segmented="false" />
 
         <YogaText FontSize="12" Color="@CurrentTheme.OnSurfaceVariant.ToHexColor()" TextAlign="left">
             Volume: @Volume

@@ -27,6 +27,21 @@ public sealed class SliderTrack : YogaClickableView
     [Parameter]
     public float TrackHeight { get; set; } = 6f;
 
+    [Parameter]
+    public bool ShowHandle { get; set; }
+
+    [Parameter]
+    public float HandleSize { get; set; } = 14f;
+
+    [Parameter]
+    public string HandleColor { get; set; } = "#6750A4";
+
+    [Parameter]
+    public string? HandleBorderColor { get; set; }
+
+    [Parameter]
+    public float HandleBorderWidth { get; set; } = 2f;
+
     protected override void RenderPostMain(SKCanvas canvas, SKRect bounds)
     {
         var safeTrackHeight = Math.Clamp(TrackHeight, 2f, Math.Max(2f, bounds.Height));
@@ -54,14 +69,14 @@ public sealed class SliderTrack : YogaClickableView
             canvas.DrawRoundRect(trackRect, trackRect.Height / 2f, trackRect.Height / 2f, paint);
 
             var activeWidth = trackRect.Width * clampedRatio;
-            if (activeWidth <= 0f)
+            if (activeWidth > 0f)
             {
-                return;
+                var activeRect = SKRect.Create(trackRect.Left, trackRect.Top, activeWidth, trackRect.Height);
+                paint.Color = activeColor;
+                canvas.DrawRoundRect(activeRect, trackRect.Height / 2f, trackRect.Height / 2f, paint);
             }
 
-            var activeRect = SKRect.Create(trackRect.Left, trackRect.Top, activeWidth, trackRect.Height);
-            paint.Color = activeColor;
-            canvas.DrawRoundRect(activeRect, trackRect.Height / 2f, trackRect.Height / 2f, paint);
+            RenderHandle(canvas, trackRect, clampedRatio);
             return;
         }
 
@@ -85,5 +100,41 @@ public sealed class SliderTrack : YogaClickableView
             paint.Color = segmentIndex <= maxActiveIndex ? activeColor : inactiveColor;
             canvas.DrawRoundRect(segmentRect, trackRect.Height / 2f, trackRect.Height / 2f, paint);
         }
+
+        RenderHandle(canvas, trackRect, clampedRatio);
+    }
+
+    private void RenderHandle(SKCanvas canvas, SKRect trackRect, float ratio)
+    {
+        if (!ShowHandle)
+        {
+            return;
+        }
+
+        var size = Math.Max(4f, HandleSize);
+        var radius = size / 2f;
+        var centerX = trackRect.Left + (trackRect.Width * Math.Clamp(ratio, 0f, 1f));
+        var centerY = trackRect.MidY;
+
+        if (!string.IsNullOrWhiteSpace(HandleBorderColor) && HandleBorderWidth > 0f)
+        {
+            using var borderPaint = new SKPaint
+            {
+                Style = SKPaintStyle.Fill,
+                IsAntialias = true,
+                Color = SKColor.Parse(HandleBorderColor),
+            };
+
+            canvas.DrawCircle(centerX, centerY, radius + Math.Max(1f, HandleBorderWidth), borderPaint);
+        }
+
+        using var handlePaint = new SKPaint
+        {
+            Style = SKPaintStyle.Fill,
+            IsAntialias = true,
+            Color = SKColor.Parse(HandleColor),
+        };
+
+        canvas.DrawCircle(centerX, centerY, radius, handlePaint);
     }
 }

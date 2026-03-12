@@ -23,6 +23,8 @@
     <SliderTrack Height="30" Cursor="@(Disabled ? "default" : "pointer")" Disabled="@Disabled"
                  Segmented="@Segmented" SegmentCount="@SegmentCount" ActiveRatio="@ValueRatio"
                  ActiveColor="@ResolvedActiveColor" InactiveColor="@ResolvedInactiveColor"
+                 ShowHandle="@ShowDragHandle" HandleSize="@ResolvedDragHandleSize"
+                 HandleColor="@ResolvedDragHandleColor" HandleBorderColor="@ResolvedDragHandleBorderColor"
                  OnPointerDown="HandleTrackPointerDown" OnPointerMove="HandleTrackPointerMove"
                  OnPointerUp="HandleTrackPointerUp" />
 </YogaView>
@@ -77,6 +79,18 @@
     [Parameter]
     public bool Segmented { get; set; } = true;
 
+    [Parameter]
+    public bool ShowDragHandle { get; set; }
+
+    [Parameter]
+    public float? DragHandleSize { get; set; }
+
+    [Parameter]
+    public string? DragHandleColor { get; set; }
+
+    [Parameter]
+    public string? DragHandleBorderColor { get; set; }
+
     private double EffectiveMin => Math.Min(Min, Max);
     private double EffectiveMax => Math.Max(Min, Max);
     private double SafeStep => Step > 0 ? Step : 1;
@@ -107,6 +121,15 @@
     private string ResolvedValueColor => Disabled
         ? (Theme?.OnSurfaceVariant.ToHexColor() ?? "#8A8A8A")
         : (ValueColor ?? (Theme?.OnSurfaceVariant.ToHexColor() ?? "#49454F"));
+
+    private float ResolvedDragHandleSize => DragHandleSize ?? 14f;
+
+    private string ResolvedDragHandleColor => Disabled
+        ? (Theme?.Outline.ToHexColor() ?? "#B0B0B0")
+        : (DragHandleColor ?? ResolvedActiveColor);
+
+    private string ResolvedDragHandleBorderColor => DragHandleBorderColor
+        ?? (Theme?.Surface.ToHexColor() ?? "#FFFFFF");
 
     private int StepPrecision => GetStepPrecision(SafeStep);
     private double NormalizedValue => Quantize(Value);
