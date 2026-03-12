@@ -1,0 +1,85 @@
+@page "/sliders"
+@using MaterialColorUtilities.Schemes
+
+<YogaView Shrink="0">
+    <YogaText Shrink="0" FontSize="28" Color="@CurrentTheme.OnBackground.ToHexColor()" TextAlign="left">
+        Sliders
+    </YogaText>
+    <YogaText Shrink="0" FontSize="14" Color="@CurrentTheme.OnSurfaceVariant.ToHexColor()" TextAlign="left">
+        Material slider examples with click-and-drag input, two-way binding, step sizes, tones, and disabled states.
+    </YogaText>
+</YogaView>
+
+<YogaView Direction="Yoga.YGFlexDirection.YGFlexDirectionColumn" Gap="16" AlignItems="stretch">
+    <BrutalistCard BorderRadius="12" Padding="16" Gap="12">
+        <YogaText FontSize="18" Color="@CurrentTheme.OnBackground.ToHexColor()" TextAlign="left">
+            Basic
+        </YogaText>
+        <YogaText FontSize="12" Color="@CurrentTheme.OnSurfaceVariant.ToHexColor()" TextAlign="left">
+            Default range from 0 to 100 with step 1. Click or drag across the track.
+        </YogaText>
+
+        <Slider Label="Volume" @bind-Value="Volume" />
+
+        <YogaText FontSize="12" Color="@CurrentTheme.OnSurfaceVariant.ToHexColor()" TextAlign="left">
+            Volume: @Volume
+        </YogaText>
+    </BrutalistCard>
+
+    <BrutalistCard BorderRadius="12" Padding="16" Gap="12">
+        <YogaText FontSize="18" Color="@CurrentTheme.OnBackground.ToHexColor()" TextAlign="left">
+            Unsegmented
+        </YogaText>
+        <YogaText FontSize="12" Color="@CurrentTheme.OnSurfaceVariant.ToHexColor()" TextAlign="left">
+            Default range from 0 to 100 with step 1. Click or drag across the track.
+        </YogaText>
+
+        <Slider Label="Volume" @bind-Value="Volume" Segmented="false" />
+
+        <YogaText FontSize="12" Color="@CurrentTheme.OnSurfaceVariant.ToHexColor()" TextAlign="left">
+            Volume: @Volume
+        </YogaText>
+    </BrutalistCard>
+
+    <BrutalistCard BorderRadius="12" Padding="16" Gap="12">
+        <YogaText FontSize="18" Color="@CurrentTheme.OnBackground.ToHexColor()" TextAlign="left">
+            Decimal Step
+        </YogaText>
+        <YogaText FontSize="12" Color="@CurrentTheme.OnSurfaceVariant.ToHexColor()" TextAlign="left">
+            Supports decimal ranges and step quantization.
+        </YogaText>
+
+        <Slider Label="Playback speed" Min="0.5" Max="2.0" Step="0.1" @bind-Value="PlaybackSpeed" />
+
+        <YogaText FontSize="12" Color="@CurrentTheme.OnSurfaceVariant.ToHexColor()" TextAlign="left">
+            Playback speed: @PlaybackSpeed.ToString("0.0")x
+        </YogaText>
+    </BrutalistCard>
+
+    <BrutalistCard BorderRadius="12" Padding="16" Gap="12">
+        <YogaText FontSize="18" Color="@CurrentTheme.OnBackground.ToHexColor()" TextAlign="left">
+            Tone and Disabled
+        </YogaText>
+        <YogaText FontSize="12" Color="@CurrentTheme.OnSurfaceVariant.ToHexColor()" TextAlign="left">
+            Tone selects color roles. Disabled slider does not change value.
+        </YogaText>
+
+        <Slider Label="Primary" Min="0" Max="10" Step="1" Tone="Primary" @bind-Value="PrimaryValue" />
+        <Slider Label="Secondary" Min="0" Max="10" Step="1" Tone="Secondary" @bind-Value="SecondaryValue" />
+        <Slider Label="Disabled" Min="0" Max="10" Step="1" Value="6" Disabled="true" />
+
+        <YogaText FontSize="12" Color="@CurrentTheme.OnSurfaceVariant.ToHexColor()" TextAlign="left">
+            Primary: @PrimaryValue · Secondary: @SecondaryValue
+        </YogaText>
+    </BrutalistCard>
+</YogaView>
+
+@code {
+    [CascadingParameter]
+    public Scheme<uint> CurrentTheme { get; set; } = default!;
+
+    private double Volume = 35;
+    private double PlaybackSpeed = 1.0;
+    private double PrimaryValue = 4;
+    private double SecondaryValue = 7;
+}

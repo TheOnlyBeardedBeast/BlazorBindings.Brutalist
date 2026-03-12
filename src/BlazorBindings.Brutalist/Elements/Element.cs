@@ -85,6 +85,8 @@ public unsafe class Element : NativeControlComponentBase
     [Parameter]
     public bool? Focusable { get; set; }
     [Parameter]
+    public bool PassThroughEvents { get; set; }
+    [Parameter]
     public int ZIndex { get; set; }
     public YGNode* Node { get; } = YG.NodeNew();
 
@@ -514,6 +516,7 @@ public unsafe class Element : NativeControlComponentBase
         }
 
         RenderChildren();
+        RenderPostMain(canvas, rect);
 
         if (shouldClip)
         {
@@ -727,6 +730,134 @@ public unsafe class Element : NativeControlComponentBase
         return false;
     }
 
+    public virtual bool DispatchPointerDown(SKPoint point)
+    {
+        if (!CanParticipateInHitTesting(point))
+        {
+            return false;
+        }
+
+        var blockedByTopChild = false;
+
+        foreach (var childElement in GetChildrenInHitTestOrder(point))
+        {
+            if (childElement.DispatchPointerDown(point))
+            {
+                return true;
+            }
+
+            if (childElement.HitTest(point) && childElement.ShouldBlockClickThrough())
+            {
+                blockedByTopChild = true;
+                break;
+            }
+        }
+
+        if (IsInteractive)
+        {
+            return HandlePointerDown(point);
+        }
+
+        if (blockedByTopChild)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    public virtual bool DispatchPointerMove(SKPoint point)
+    {
+        if (!CanParticipateInHitTesting(point))
+        {
+            return false;
+        }
+
+        var blockedByTopChild = false;
+
+        foreach (var childElement in GetChildrenInHitTestOrder(point))
+        {
+            if (childElement.DispatchPointerMove(point))
+            {
+                return true;
+            }
+
+            if (childElement.HitTest(point) && childElement.ShouldBlockClickThrough())
+            {
+                blockedByTopChild = true;
+                break;
+            }
+        }
+
+        if (IsInteractive)
+        {
+            return HandlePointerMove(point);
+        }
+
+        if (blockedByTopChild)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    public virtual bool DispatchPointerUp(SKPoint point)
+    {
+        if (!CanParticipateInHitTesting(point))
+        {
+            return false;
+        }
+
+        var blockedByTopChild = false;
+
+        foreach (var childElement in GetChildrenInHitTestOrder(point))
+        {
+            if (childElement.DispatchPointerUp(point))
+            {
+                return true;
+            }
+
+            if (childElement.HitTest(point) && childElement.ShouldBlockClickThrough())
+            {
+                blockedByTopChild = true;
+                break;
+            }
+        }
+
+        if (IsInteractive)
+        {
+            return HandlePointerUp(point);
+        }
+
+        if (blockedByTopChild)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    public virtual bool DispatchCapturedPointerMove(SKPoint point)
+    {
+        if (!IsInteractive)
+        {
+            return false;
+        }
+
+        return HandlePointerMove(point);
+    }
+
+    public virtual bool DispatchCapturedPointerUp(SKPoint point)
+    {
+        if (!IsInteractive)
+        {
+            return false;
+        }
+
+        return HandlePointerUp(point);
+    }
+
     public virtual bool DispatchTextInput(string text)
     {
         if (string.IsNullOrEmpty(text))
@@ -895,6 +1026,25 @@ public unsafe class Element : NativeControlComponentBase
         return false;
     }
 
+    protected virtual bool HandlePointerDown(SKPoint point)
+    {
+        return false;
+    }
+
+    protected virtual bool HandlePointerMove(SKPoint point)
+    {
+        return false;
+    }
+
+    protected virtual bool HandlePointerUp(SKPoint point)
+    {
+        return false;
+    }
+
+    protected virtual void RenderPostMain(SKCanvas canvas, SKRect bounds)
+    {
+    }
+
     protected virtual bool HandleTextInput(string text)
     {
         return false;
@@ -968,9 +1118,10 @@ public unsafe class Element : NativeControlComponentBase
     }
 
     protected virtual bool BlocksClickThrough
-        => !string.IsNullOrWhiteSpace(Background)
-        || !string.IsNullOrWhiteSpace(BorderWidth)
-        || !string.IsNullOrWhiteSpace(OutlineWidth);
+        => !PassThroughEvents
+        && (!string.IsNullOrWhiteSpace(Background)
+            || !string.IsNullOrWhiteSpace(BorderWidth)
+            || !string.IsNullOrWhiteSpace(OutlineWidth));
 
     protected virtual bool BlocksFocusThrough => BlocksClickThrough;
     protected virtual bool BlocksCursorThrough => BlocksClickThrough;

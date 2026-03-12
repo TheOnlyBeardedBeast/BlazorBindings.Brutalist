@@ -27,6 +27,7 @@ public sealed class OpentkService : IBrutalistRenderSurface, IDisposable
 
     public event Action? SurfaceResized;
     public event Action<SKPoint>? MouseClicked;
+    public event Action<SKPoint>? MouseReleased;
     public event Action<SKPoint>? MouseMoved;
     public event Action<SKPoint, float>? MouseWheelScrolled;
     public event Action<string>? TextInputReceived;
@@ -80,6 +81,7 @@ public sealed class OpentkService : IBrutalistRenderSurface, IDisposable
         _window.Resize += OnResize;
         _window.RenderFrame += OnRenderFrame;
         _window.MouseDown += OnMouseDown;
+        _window.MouseUp += OnMouseUp;
         _window.MouseMove += OnMouseMove;
         _window.TextInput += OnTextInput;
         _window.KeyDown += OnKeyDown;
@@ -118,6 +120,25 @@ public sealed class OpentkService : IBrutalistRenderSurface, IDisposable
         }
 
         MouseMoved?.Invoke(new SKPoint(x, y));
+    }
+
+    private void OnMouseUp(MouseButtonEventArgs args)
+    {
+        if (args.Button != MouseButton.Left)
+        {
+            return;
+        }
+
+        var x = _window.MousePosition.X;
+        var y = _window.MousePosition.Y;
+
+        if (x > Width || y > Height)
+        {
+            x /= DpiScaleX;
+            y /= DpiScaleY;
+        }
+
+        MouseReleased?.Invoke(new SKPoint(x, y));
     }
 
     private void OnTextInput(TextInputEventArgs args)

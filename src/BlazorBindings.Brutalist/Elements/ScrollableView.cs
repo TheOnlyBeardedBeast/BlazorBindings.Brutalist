@@ -98,6 +98,117 @@ public unsafe class YogaScrollableView : YogaView
         return false;
     }
 
+    public override bool DispatchPointerDown(SKPoint point)
+    {
+        if (!ContainsPoint(point))
+        {
+            return false;
+        }
+
+        var contentPoint = ToContentPoint(point);
+        var blockedByTopChild = false;
+
+        foreach (var childElement in GetChildrenInHitTestOrder(contentPoint))
+        {
+            if (childElement.DispatchPointerDown(contentPoint))
+            {
+                return true;
+            }
+
+            if (childElement.HitTest(contentPoint) && childElement.ShouldBlockClickThrough())
+            {
+                blockedByTopChild = true;
+                break;
+            }
+        }
+
+        if (IsInteractive)
+        {
+            return HandlePointerDown(contentPoint);
+        }
+
+        if (blockedByTopChild)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    public override bool DispatchPointerMove(SKPoint point)
+    {
+        if (!ContainsPoint(point))
+        {
+            return false;
+        }
+
+        var contentPoint = ToContentPoint(point);
+        var blockedByTopChild = false;
+
+        foreach (var childElement in GetChildrenInHitTestOrder(contentPoint))
+        {
+            if (childElement.DispatchPointerMove(contentPoint))
+            {
+                return true;
+            }
+
+            if (childElement.HitTest(contentPoint) && childElement.ShouldBlockClickThrough())
+            {
+                blockedByTopChild = true;
+                break;
+            }
+        }
+
+        if (IsInteractive)
+        {
+            return HandlePointerMove(contentPoint);
+        }
+
+        if (blockedByTopChild)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    public override bool DispatchPointerUp(SKPoint point)
+    {
+        if (!ContainsPoint(point))
+        {
+            return false;
+        }
+
+        var contentPoint = ToContentPoint(point);
+        var blockedByTopChild = false;
+
+        foreach (var childElement in GetChildrenInHitTestOrder(contentPoint))
+        {
+            if (childElement.DispatchPointerUp(contentPoint))
+            {
+                return true;
+            }
+
+            if (childElement.HitTest(contentPoint) && childElement.ShouldBlockClickThrough())
+            {
+                blockedByTopChild = true;
+                break;
+            }
+        }
+
+        if (IsInteractive)
+        {
+            return HandlePointerUp(contentPoint);
+        }
+
+        if (blockedByTopChild)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
     public override bool TryResolveCursor(SKPoint point, out bool isPointer)
     {
         isPointer = false;

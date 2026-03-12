@@ -27,7 +27,6 @@ public sealed class ScrollController
 
     public void ScrollTo(float y)
     {
-        // Convenience: request a scroll where top==bottom==y
         ScrollRequested?.Invoke(new ScrollRequest(null, y, y));
     }
 }

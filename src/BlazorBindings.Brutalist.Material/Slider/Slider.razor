@@ -1,0 +1,203 @@
+@using MaterialColorUtilities.Schemes
+@using System.Globalization
+
+<YogaView Direction="Yoga.YGFlexDirection.YGFlexDirectionColumn" Gap="8">
+    @if (!string.IsNullOrWhiteSpace(Label) || ShowValue)
+    {
+        <YogaView Direction="Yoga.YGFlexDirection.YGFlexDirectionRow" AlignItems="center" JustifyContent="space-between">
+            @if (!string.IsNullOrWhiteSpace(Label))
+            {
+                <YogaText Color="@ResolvedLabelColor" FontSize="14" Cursor="@(Disabled ? "default" : null)">
+                    @Label
+                </YogaText>
+            }
+            @if (ShowValue)
+            {
+                <YogaText Color="@ResolvedValueColor" FontSize="12" Cursor="default">
+                    @FormattedValue
+                </YogaText>
+            }
+        </YogaView>
+    }
+
+    <SliderTrack Height="30" Cursor="@(Disabled ? "default" : "pointer")" Disabled="@Disabled"
+                 Segmented="@Segmented" SegmentCount="@SegmentCount" ActiveRatio="@ValueRatio"
+                 ActiveColor="@ResolvedActiveColor" InactiveColor="@ResolvedInactiveColor"
+                 OnPointerDown="HandleTrackPointerDown" OnPointerMove="HandleTrackPointerMove"
+                 OnPointerUp="HandleTrackPointerUp" />
+</YogaView>
+
+@code
+{
+    [CascadingParameter]
+    public Scheme<uint>? Theme { get; set; }
+
+    [Parameter]
+    public string? Label { get; set; }
+
+    [Parameter]
+    public bool ShowValue { get; set; } = true;
+
+    [Parameter]
+    public double Min { get; set; } = 0;
+
+    [Parameter]
+    public double Max { get; set; } = 100;
+
+    [Parameter]
+    public double Step { get; set; } = 1;
+
+    [Parameter]
+    public double Value { get; set; }
+
+    [Parameter]
+    public EventCallback<double> ValueChanged { get; set; }
+
+    [Parameter]
+    public EventCallback<double> OnChange { get; set; }
+
+    [Parameter]
+    public bool Disabled { get; set; }
+
+    [Parameter]
+    public string Tone { get; set; } = "Primary";
+
+    [Parameter]
+    public string? ActiveColor { get; set; }
+
+    [Parameter]
+    public string? InactiveColor { get; set; }
+
+    [Parameter]
+    public string? LabelColor { get; set; }
+
+    [Parameter]
+    public string? ValueColor { get; set; }
+
+    [Parameter]
+    public bool Segmented { get; set; } = true;
+
+    private double EffectiveMin => Math.Min(Min, Max);
+    private double EffectiveMax => Math.Max(Min, Max);
+    private double SafeStep => Step > 0 ? Step : 1;
+    private double Range => Math.Max(EffectiveMax - EffectiveMin, SafeStep);
+
+    private int RawStepCount => Math.Max(1, (int)Math.Round(Range / SafeStep, MidpointRounding.AwayFromZero));
+    private int SegmentCount => Segmented ? Math.Max(2, Math.Min(120, RawStepCount + 1)) : 1;
+
+    private string SchemeMainColor => Tone switch
+    {
+        "Secondary" => Theme?.Secondary.ToHexColor() ?? "#6750A4",
+        "Tertiary" => Theme?.Tertiary.ToHexColor() ?? "#7D5260",
+        _ => Theme?.Primary.ToHexColor() ?? "#6750A4"
+    };
+
+    private string ResolvedActiveColor => Disabled
+        ? (Theme?.Outline.ToHexColor() ?? "#B0B0B0")
+        : (ActiveColor ?? SchemeMainColor);
+
+    private string ResolvedInactiveColor => Disabled
+        ? (Theme?.OutlineVariant.ToHexColor() ?? "#D8D8D8")
+        : (InactiveColor ?? (Theme?.SurfaceContainerHighest.ToHexColor() ?? "#E8DEF8"));
+
+    private string ResolvedLabelColor => Disabled
+        ? (Theme?.OnSurfaceVariant.ToHexColor() ?? "#8A8A8A")
+        : (LabelColor ?? (Theme?.OnSurface.ToHexColor() ?? "#1C1B1F"));
+
+    private string ResolvedValueColor => Disabled
+        ? (Theme?.OnSurfaceVariant.ToHexColor() ?? "#8A8A8A")
+        : (ValueColor ?? (Theme?.OnSurfaceVariant.ToHexColor() ?? "#49454F"));
+
+    private int StepPrecision => GetStepPrecision(SafeStep);
+    private double NormalizedValue => Quantize(Value);
+    private string FormattedValue => NormalizedValue.ToString($"F{StepPrecision}", CultureInfo.InvariantCulture);
+    private float ValueRatio => Range <= 0d
+        ? 0f
+        : (float)Math.Clamp((NormalizedValue - EffectiveMin) / Range, 0d, 1d);
+    private bool IsDragging { get; set; }
+
+    private async Task HandleTrackPointerDown(PointerEventArgs args)
+    {
+        if (Disabled)
+        {
+            return;
+        }
+
+        IsDragging = true;
+        await UpdateValueFromPointer(args);
+    }
+
+    private async Task HandleTrackPointerMove(PointerEventArgs args)
+    {
+        if (Disabled || !IsDragging)
+        {
+            return;
+        }
+
+        await UpdateValueFromPointer(args);
+    }
+
+    private async Task HandleTrackPointerUp(PointerEventArgs args)
+    {
+        if (Disabled)
+        {
+            return;
+        }
+
+        IsDragging = false;
+        await UpdateValueFromPointer(args);
+    }
+
+    private async Task UpdateValueFromPointer(PointerEventArgs args)
+    {
+        var width = Math.Max(1f, args.ElementWidth);
+        var ratio = Math.Clamp(args.PointerLocalX / width, 0f, 1f);
+        var target = EffectiveMin + (ratio * Range);
+        var next = Quantize(target);
+
+        if (Math.Abs(next - NormalizedValue) <= 0.0000001)
+        {
+            return;
+        }
+
+        Value = next;
+
+        if (ValueChanged.HasDelegate)
+        {
+            await ValueChanged.InvokeAsync(next);
+        }
+
+        if (OnChange.HasDelegate)
+        {
+            await OnChange.InvokeAsync(next);
+        }
+    }
+
+    private double Quantize(double rawValue)
+    {
+        var clamped = Math.Clamp(rawValue, EffectiveMin, EffectiveMax);
+        var steps = Math.Round((clamped - EffectiveMin) / SafeStep, MidpointRounding.AwayFromZero);
+        var snapped = EffectiveMin + (steps * SafeStep);
+        var bounded = Math.Clamp(snapped, EffectiveMin, EffectiveMax);
+        return Math.Round(bounded, StepPrecision, MidpointRounding.AwayFromZero);
+    }
+
+    private static int GetStepPrecision(double step)
+    {
+        var text = step.ToString("G17", CultureInfo.InvariantCulture);
+        var decimalIndex = text.IndexOf('.');
+        if (decimalIndex < 0)
+        {
+            return 0;
+        }
+
+        var precision = text.Length - decimalIndex - 1;
+        while (precision > 0 && text[^1] == '0')
+        {
+            text = text[..^1];
+            precision--;
+        }
+
+        return Math.Min(precision, 6);
+    }
+}

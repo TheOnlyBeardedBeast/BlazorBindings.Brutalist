@@ -7,6 +7,7 @@ public interface IBrutalistRenderSurface
 {
     event Action? SurfaceResized;
     event Action<SKPoint>? MouseClicked;
+    event Action<SKPoint>? MouseReleased;
     event Action<SKPoint>? MouseMoved;
     event Action<SKPoint, float>? MouseWheelScrolled;
     event Action<string>? TextInputReceived;

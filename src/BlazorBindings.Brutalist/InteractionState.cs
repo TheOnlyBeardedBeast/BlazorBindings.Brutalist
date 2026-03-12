@@ -5,8 +5,10 @@ namespace BlazorBindings.Brutalist;
 public sealed class InteractionState
 {
     public Element? ActiveElement { get; private set; }
+    public Element? PointerCaptureElement { get; private set; }
 
     public event Action<Element?>? ActiveElementChanged;
+    public event Action<Element?>? PointerCaptureChanged;
 
     public void SetActiveElement(Element? element)
     {
@@ -18,6 +20,17 @@ public sealed class InteractionState
         ActiveElement = element;
         Console.WriteLine($"[InteractionState] ActiveElement changed: {FormatElement(element)}");
         ActiveElementChanged?.Invoke(element);
+    }
+
+    public void SetPointerCapture(Element? element)
+    {
+        if (ReferenceEquals(PointerCaptureElement, element))
+        {
+            return;
+        }
+
+        PointerCaptureElement = element;
+        PointerCaptureChanged?.Invoke(element);
     }
 
     private static string FormatElement(Element? element)

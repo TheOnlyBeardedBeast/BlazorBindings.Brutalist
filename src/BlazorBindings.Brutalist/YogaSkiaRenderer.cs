@@ -26,6 +26,7 @@ public class YogaSkiaRenderer : Renderer
         _logger = loggerFactory.CreateLogger<YogaSkiaRenderer>();
         _renderSurface.SurfaceResized += OnSurfaceResized;
         _renderSurface.MouseClicked += OnMouseClicked;
+        _renderSurface.MouseReleased += OnMouseReleased;
         _renderSurface.MouseMoved += OnMouseMoved;
         _renderSurface.MouseWheelScrolled += OnMouseWheelScrolled;
         _renderSurface.TextInputReceived += OnTextInputReceived;
@@ -120,7 +121,13 @@ public class YogaSkiaRenderer : Renderer
             var root = GetRootElement();
             var activeElement = root?.ResolveActiveElement(point);
             _interactionState.SetActiveElement(activeElement);
+            var handledPointerDown = root?.DispatchPointerDown(point) == true;
             root?.DispatchClick(point);
+
+            if (handledPointerDown)
+            {
+                RenderCurrentFrame();
+            }
         });
     }
 
@@ -129,6 +136,15 @@ public class YogaSkiaRenderer : Renderer
         _ = Dispatcher.InvokeAsync(() =>
         {
             var root = GetRootElement();
+
+            if (_interactionState.PointerCaptureElement is { } pointerCaptureElement)
+            {
+                if (pointerCaptureElement.DispatchCapturedPointerMove(point))
+                {
+                    RenderCurrentFrame();
+                }
+            }
+
             var shouldUsePointer = false;
             if (root is not null && root.TryResolveCursor(point, out var isPointer))
             {
@@ -136,6 +152,30 @@ public class YogaSkiaRenderer : Renderer
             }
 
             _renderSurface.SetPointerCursor(shouldUsePointer);
+        });
+    }
+
+    private void OnMouseReleased(SKPoint point)
+    {
+        _ = Dispatcher.InvokeAsync(() =>
+        {
+            var handled = false;
+
+            if (_interactionState.PointerCaptureElement is { } pointerCaptureElement)
+            {
+                handled = pointerCaptureElement.DispatchCapturedPointerUp(point);
+                _interactionState.SetPointerCapture(null);
+            }
+            else
+            {
+                var root = GetRootElement();
+                handled = root?.DispatchPointerUp(point) == true;
+            }
+
+            if (handled)
+            {
+                RenderCurrentFrame();
+            }
         });
     }
 
