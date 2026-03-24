@@ -20,10 +20,9 @@
         </YogaView>
     }
 
-    <SliderTrack Height="30" Cursor="@(Disabled ? "default" : "pointer")" Disabled="@Disabled"
-                 Segmented="@Segmented" SegmentCount="@SegmentCount" ActiveRatio="@ValueRatio"
-                 ActiveColor="@ResolvedActiveColor" InactiveColor="@ResolvedInactiveColor"
-                 ShowHandle="@ShowDragHandle" HandleSize="@ResolvedDragHandleSize"
+    <SliderTrack Height="30" Cursor="@(Disabled ? "default" : "pointer")" Disabled="@Disabled"                 Segmented="@Segmented"
+                 SegmentCount="@SegmentCount" ActiveRatio="@ValueRatio"                 ActiveColor="@ResolvedActiveColor"
+                 InactiveColor="@ResolvedInactiveColor"                 ShowHandle="@ShowDragHandle" HandleSize="@ResolvedDragHandleSize"
                  HandleColor="@ResolvedDragHandleColor" HandleBorderColor="@ResolvedDragHandleBorderColor"
                  OnPointerDown="HandleTrackPointerDown" OnPointerMove="HandleTrackPointerMove"
                  OnPointerUp="HandleTrackPointerUp" />

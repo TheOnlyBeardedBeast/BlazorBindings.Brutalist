@@ -47,7 +47,7 @@
             </YogaView>
         </YogaView>
     }
-    <YogaView Position="absolute" Bottom="16" Right="16">
+    <YogaView Position="absolute" Bottom="16" Right="16" Overflow="visible">
         <Button
         HeadIcon="@(CurrentTheme.Background < CurrentTheme.OnBackground ? @PhosphorIcons.Sun : @PhosphorIcons.Moon)"
         OnClick="@(CurrentTheme.Background < CurrentTheme.OnBackground ? UseLightTheme : UseDarkTheme)" />

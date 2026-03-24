@@ -200,13 +200,57 @@ public class YogaSkiaRenderer : Renderer
         });
     }
 
-    private void OnKeyDownReceived(Keys key)
+    private void OnKeyDownReceived(Keys key, bool isShiftPressed)
     {
         _ = Dispatcher.InvokeAsync(() =>
         {
+            if (key == Keys.Tab)
+            {
+                if (TryNavigateFocusByTab(isShiftPressed))
+                {
+                    RenderCurrentFrame();
+                    return;
+                }
+            }
+
             _interactionState.ActiveElement?.DispatchKeyDown(key);
             RenderCurrentFrame();
         });
+    }
+
+    private bool TryNavigateFocusByTab(bool reverse)
+    {
+        var root = GetRootElement();
+        if (root is null)
+        {
+            return false;
+        }
+
+        var focusableElements = root.GetFocusableElementsInTabOrder();
+        if (focusableElements.Count == 0)
+        {
+            return false;
+        }
+
+        var currentElement = _interactionState.ActiveElement;
+        var currentIndex = focusableElements.FindIndex(element => ReferenceEquals(element, currentElement));
+
+        int targetIndex;
+        if (currentIndex < 0)
+        {
+            targetIndex = reverse ? focusableElements.Count - 1 : 0;
+        }
+        else if (reverse)
+        {
+            targetIndex = (currentIndex - 1 + focusableElements.Count) % focusableElements.Count;
+        }
+        else
+        {
+            targetIndex = (currentIndex + 1) % focusableElements.Count;
+        }
+
+        _interactionState.SetActiveElement(focusableElements[targetIndex]);
+        return true;
     }
 
     private void RenderCurrentFrame()

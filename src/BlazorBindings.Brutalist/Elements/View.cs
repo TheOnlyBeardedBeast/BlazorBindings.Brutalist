@@ -8,6 +8,7 @@ namespace BlazorBindings.Brutalist.Elements;
 public class YogaView : Element, IContainerElementHandler, IHandleChildContentText
 {
     [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public Action<SKCanvas, SKRect>? OnRender { get; set; }
     public object? TargetElement => null;
 
     private TaskCompletionSource<object>? _taskCompletionSource;
@@ -49,6 +50,12 @@ public class YogaView : Element, IContainerElementHandler, IHandleChildContentTe
         // TODO: custom skia rendering
 
         base.RenderSkia();
+    }
+
+    protected override void RenderPostMain(SKCanvas canvas, SKRect bounds)
+    {
+        base.RenderPostMain(canvas, bounds);
+        OnRender?.Invoke(canvas, bounds);
     }
 
     protected override RenderFragment GetChildContent() => ChildContent;

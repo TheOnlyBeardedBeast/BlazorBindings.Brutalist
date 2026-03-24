@@ -1,3 +1,4 @@
+using OpenTK.Windowing.GraphicsLibraryFramework;
 using SkiaSharp;
 
 namespace BlazorBindings.Brutalist.Elements;
@@ -63,6 +64,26 @@ public class YogaClickableView : YogaView, IDisposable
             return false;
         }
 
+        return InvokeClickHandlers();
+    }
+
+    protected override bool HandleKeyDown(Keys key)
+    {
+        if (Disabled)
+        {
+            return false;
+        }
+
+        if (key != Keys.Enter && key != Keys.KeyPadEnter)
+        {
+            return false;
+        }
+
+        return InvokeClickHandlers();
+    }
+
+    private bool InvokeClickHandlers()
+    {
         var handled = false;
 
         if (OnClickAction is not null)

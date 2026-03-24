@@ -193,6 +193,7 @@ public unsafe class Element : NativeControlComponentBase
             YG.NodeStyleSetFlexShrink(Node, flexShrink.Value);
         }
 
+        YG.NodeStyleSetFlexBasisAuto(Node);
         if (!string.IsNullOrWhiteSpace(Basis))
         {
             var basisValue = Basis.Trim();
@@ -1018,6 +1019,18 @@ public unsafe class Element : NativeControlComponentBase
 
     protected bool IsFocusableResolved => Focusable ?? IsFocusable;
 
+    public bool CanReceiveFocus()
+    {
+        return IsFocusableResolved;
+    }
+
+    public List<Element> GetFocusableElementsInTabOrder()
+    {
+        var focusableElements = new List<Element>();
+        CollectFocusableElementsInTabOrder(focusableElements);
+        return focusableElements;
+    }
+
     protected virtual bool IsInteractive => false;
     protected virtual bool IsFocusable => IsInteractive;
 
@@ -1125,6 +1138,38 @@ public unsafe class Element : NativeControlComponentBase
 
     protected virtual bool BlocksFocusThrough => BlocksClickThrough;
     protected virtual bool BlocksCursorThrough => BlocksClickThrough;
+
+    private void CollectFocusableElementsInTabOrder(List<Element> focusableElements)
+    {
+        if (IsFocusableResolved)
+        {
+            focusableElements.Add(this);
+        }
+
+        foreach (var child in GetChildrenInTreeOrder())
+        {
+            child.CollectFocusableElementsInTabOrder(focusableElements);
+        }
+    }
+
+    private List<Element> GetChildrenInTreeOrder()
+    {
+        var children = new List<Element>();
+
+        for (nuint i = 0; i < YG.NodeGetChildCount(Node); i++)
+        {
+            var childNode = YG.NodeGetChild(Node, i);
+            var ptr = YG.NodeGetContext(childNode);
+            var handle = GCHandle.FromIntPtr((IntPtr)ptr);
+
+            if (handle.Target is Element childElement)
+            {
+                children.Add(childElement);
+            }
+        }
+
+        return children;
+    }
 
     protected List<Element> GetChildrenInRenderOrder()
     {

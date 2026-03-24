@@ -4,15 +4,17 @@
 
 <YogaView AlignSelf="stretch" Grow="0" Shrink="0" Width="@(IsOpen ? 360 : 94)" BorderRadius="0 16 16 0" Gap="16"
           Direction="Yoga.YGFlexDirection.YGFlexDirectionColumn">
-    <YogaView Padding="12 12 0 12">
+    <YogaView Padding="12 12 12 12" Shrink="0">
         <Button Size="M" HeadIcon="@PhosphorIcons.List" JustifyContent="start" Variant="Text" OnClick="@Toggle" />
     </YogaView>
 
-    <YogaScrollableView Direction="Yoga.YGFlexDirection.YGFlexDirectionColumn" Grow="1" Padding="12" Overflow="hidden">
+    <YogaScrollableView Direction="Yoga.YGFlexDirection.YGFlexDirectionColumn" Grow="1" Padding="0 12"
+                        Overflow="hidden">
         @ScrollableContent
         <YogaView Height="6" Width="2"></YogaView>
     </YogaScrollableView>
-    <YogaView Padding="0 12 12 12">
+
+    <YogaView Shrink="0" Padding="0 12 12 12">
         <Button HeadIcon="@PhosphorIcons.GearSix" JustifyContent="start" Variant="Text" />
     </YogaView>
 

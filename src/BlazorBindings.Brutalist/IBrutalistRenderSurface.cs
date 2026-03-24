@@ -11,7 +11,7 @@ public interface IBrutalistRenderSurface
     event Action<SKPoint>? MouseMoved;
     event Action<SKPoint, float>? MouseWheelScrolled;
     event Action<string>? TextInputReceived;
-    event Action<Keys>? KeyDownReceived;
+    event Action<Keys, bool>? KeyDownReceived;
     event Action<float, double>? FrameTick;
 
     int Width { get; }

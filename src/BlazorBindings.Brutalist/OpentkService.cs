@@ -31,7 +31,7 @@ public sealed class OpentkService : IBrutalistRenderSurface, IDisposable
     public event Action<SKPoint>? MouseMoved;
     public event Action<SKPoint, float>? MouseWheelScrolled;
     public event Action<string>? TextInputReceived;
-    public event Action<Keys>? KeyDownReceived;
+    public event Action<Keys, bool>? KeyDownReceived;
     public event Action<float, double>? FrameTick;
 
     // Logical (DIP-like) size used by layout and drawing coordinates.
@@ -153,7 +153,10 @@ public sealed class OpentkService : IBrutalistRenderSurface, IDisposable
 
     private void OnKeyDown(KeyboardKeyEventArgs args)
     {
-        KeyDownReceived?.Invoke(args.Key);
+        var isShiftPressed = args.Shift
+            || _window.KeyboardState.IsKeyDown(Keys.LeftShift)
+            || _window.KeyboardState.IsKeyDown(Keys.RightShift);
+        KeyDownReceived?.Invoke(args.Key, isShiftPressed);
     }
 
     public void SetPointerCursor(bool enabled)

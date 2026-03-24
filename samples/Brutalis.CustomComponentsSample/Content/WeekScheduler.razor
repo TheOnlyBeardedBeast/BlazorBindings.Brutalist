@@ -1,0 +1,142 @@
+@page "/week-scheduler"
+
+@using BlazorBindings.Brutalist.Material.Typography
+@using Brutalist.Material.Typography
+@using MaterialColorUtilities.Schemes
+@using SkiaSharp
+
+<YogaView>
+    <MaterialText FontSize="MaterialFontSize.HeadlineMedium" Color="@CurrentTheme?.OnBackground.ToHexColor()">
+        @DateTime.Now.ToString("MMMM dd, yyyy")
+    </MaterialText>
+</YogaView>
+
+<YogaView Background="@CurrentTheme?.Surface5.ToHexColor()" BorderColor="@CurrentTheme?.Shadow.ToHexColor()"
+          BorderWidth="2" BorderRadius="20" Direction="Yoga.YGFlexDirection.YGFlexDirectionColumn" Grow="1"
+          AlignItems="stretch">
+    <YogaView Id="days-row" BorderColor="@CurrentTheme?.Shadow.ToHexColor()" BorderWidth="0 0 2 0" Grow="0"
+              Direction="Yoga.YGFlexDirection.YGFlexDirectionRow" AlignItems="stretch">
+        <YogaView Grow="1" BorderColor="@CurrentTheme?.Shadow.ToHexColor()" BorderWidth="0 1 0 0" Basis="0" Padding="24"
+                  AlignItems="center">
+            <MaterialText Color="@CurrentTheme?.OnSurfaceVariant.ToHexColor()">
+                Monday
+            </MaterialText>
+        </YogaView>
+        <YogaView Grow="1" BorderColor="@CurrentTheme?.Shadow.ToHexColor()" BorderWidth="0 1 0 1" Basis="0" Padding="24"
+                  AlignItems="center">
+            <MaterialText Color="@CurrentTheme?.OnSurfaceVariant.ToHexColor()">
+                Tuesday
+            </MaterialText>
+        </YogaView>
+        <YogaView Grow="1" BorderColor="@CurrentTheme?.Shadow.ToHexColor()" BorderWidth="0 1 0 1" Basis="0" Padding="24"
+                  AlignItems="center">
+            <MaterialText Color="@CurrentTheme?.OnSurfaceVariant.ToHexColor()">
+                Wednesday
+            </MaterialText>
+        </YogaView>
+        <YogaView Grow="1" BorderColor="@CurrentTheme?.Shadow.ToHexColor()" BorderWidth="0 1 0 1" Basis="0" Padding="24"
+                  AlignItems="center">
+            <MaterialText Color="@CurrentTheme?.OnSurfaceVariant.ToHexColor()">
+                Thursday
+            </MaterialText>
+        </YogaView>
+        <YogaView Grow="1" BorderColor="@CurrentTheme?.Shadow.ToHexColor()" BorderWidth="0 1 0 1" Basis="0" Padding="24"
+                  AlignItems="center">
+            <MaterialText Color="@CurrentTheme?.OnSurfaceVariant.ToHexColor()">
+                Friday
+            </MaterialText>
+        </YogaView>
+        <YogaView Grow="1" BorderColor="@CurrentTheme?.Shadow.ToHexColor()" BorderWidth="0 1 0 1" Basis="0" Padding="24"
+                  AlignItems="center">
+            <MaterialText Color="@CurrentTheme?.OnSurfaceVariant.ToHexColor()">
+                Saturday
+            </MaterialText>
+        </YogaView>
+        <YogaView Grow="1" BorderColor="@CurrentTheme?.Shadow.ToHexColor()" BorderWidth="0 0 0 1" Basis="0" Padding="24"
+                  AlignItems="center">
+            <MaterialText Color="@CurrentTheme?.OnSurfaceVariant.ToHexColor()">
+                Sunday
+            </MaterialText>
+        </YogaView>
+    </YogaView>
+    <YogaView Id="days-row" Grow="1" Direction="Yoga.YGFlexDirection.YGFlexDirectionRow" AlignItems="stretch">
+        <YogaView BorderColor="@CurrentTheme?.Shadow.ToHexColor()" BorderWidth="0 1 0 0" Grow="1" Basis="0">
+            <YogaView Gap="8" Padding="8">
+                <YogaView OnRender="RenderMeetingAccent" Gap="4" Padding="8 8 8 16"
+                          Background="@CurrentTheme?.Secondary.ToHexColor()"
+                          Direction="Yoga.YGFlexDirection.YGFlexDirectionColumn" BorderRadius="4">
+                    <MaterialText FontSize="MaterialFontSize.LabelLarge"                                  Color="@CurrentTheme?.OnPrimary.ToHexColor()">
+                        Meeting
+                    </MaterialText>
+                    <MaterialText FontSize="MaterialFontSize.LabelMedium"                                  Color="@CurrentTheme?.OnPrimary.ToHexColor()">
+                        10:00 - 11:00
+                    </MaterialText>
+                </YogaView>
+                <YogaView OnRender="RenderMeetingAccent" Gap="4" Padding="8 8 8 16"
+                          Background="@CurrentTheme?.Secondary.ToHexColor()"
+                          Direction="Yoga.YGFlexDirection.YGFlexDirectionColumn" BorderRadius="4">
+                    <MaterialText FontSize="MaterialFontSize.LabelLarge" Color="@CurrentTheme?.OnPrimary.ToHexColor()">
+                        Meeting
+                    </MaterialText>
+                    <MaterialText FontSize="MaterialFontSize.LabelMedium" Color="@CurrentTheme?.OnPrimary.ToHexColor()">
+                        10:00 - 11:00
+                    </MaterialText>
+                </YogaView>
+                <YogaView OnRender="RenderMeetingAccent" Gap="4" Padding="8 8 8 16"
+                          Background="@CurrentTheme?.Secondary.ToHexColor()"
+                          Direction="Yoga.YGFlexDirection.YGFlexDirectionColumn" BorderRadius="4">
+                    <MaterialText FontSize="MaterialFontSize.LabelLarge" Color="@CurrentTheme?.OnPrimary.ToHexColor()">
+                        Meeting
+                    </MaterialText>
+                    <MaterialText FontSize="MaterialFontSize.LabelMedium" Color="@CurrentTheme?.OnPrimary.ToHexColor()">
+                        10:00 - 11:00
+                    </MaterialText>
+                </YogaView>
+            </YogaView>
+        </YogaView>
+        <YogaView BorderColor="@CurrentTheme?.Shadow.ToHexColor()" BorderWidth="0 1 0 1" Grow="1" Basis="0">
+
+        </YogaView>
+        <YogaView BorderColor="@CurrentTheme?.Shadow.ToHexColor()" BorderWidth="0 1 0 1" Grow="1" Basis="0">
+
+        </YogaView>
+        <YogaView BorderColor="@CurrentTheme?.Shadow.ToHexColor()" BorderWidth="0 1 0 1" Grow="1" Basis="0">
+
+        </YogaView>
+        <YogaView BorderColor="@CurrentTheme?.Shadow.ToHexColor()" BorderWidth="0 1 0 1" Grow="1" Basis="0">
+
+        </YogaView>
+        <YogaView BorderColor="@CurrentTheme?.Shadow.ToHexColor()" BorderWidth="0 1 0 1" Grow="1" Basis="0">
+
+        </YogaView>
+        <YogaView BorderColor="@CurrentTheme?.Shadow.ToHexColor()" BorderWidth="0 0 0 1" Grow="1" Basis="0">
+
+        </YogaView>
+    </YogaView>
+</YogaView>
+
+@code {
+    [CascadingParameter]
+    public Scheme<uint>? CurrentTheme { get; set; }
+
+    private void RenderMeetingAccent(SKCanvas canvas, SKRect bounds)
+    {
+        var lineColor = string.IsNullOrWhiteSpace(CurrentTheme?.OnSecondary.ToHexColor())
+            ? SKColors.White
+            : SKColor.Parse(CurrentTheme!.OnSecondary.ToHexColor());
+
+        using var paint = new SKPaint
+        {
+            Color = lineColor,
+            Style = SKPaintStyle.Stroke,
+            StrokeWidth = 4,
+            StrokeCap = SKStrokeCap.Round,
+            IsAntialias = true,
+        };
+
+        var x = bounds.Left + 4;
+        var yTop = bounds.Top + 4;
+        var yBottom = bounds.Bottom - 4;
+        canvas.DrawLine(x, yTop, x, yBottom, paint);
+    }
+}

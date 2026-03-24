@@ -14,7 +14,7 @@ public sealed class ImageRenderService : IBrutalistRenderSurface, IDisposable
     public event Action<SKPoint>? MouseMoved;
     public event Action<SKPoint, float>? MouseWheelScrolled;
     public event Action<string>? TextInputReceived;
-    public event Action<Keys>? KeyDownReceived;
+    public event Action<Keys, bool>? KeyDownReceived;
     public event Action<float, double>? FrameTick;
 
     public int Width { get; private set; }
@@ -151,9 +151,9 @@ public sealed class ImageRenderService : IBrutalistRenderSurface, IDisposable
         }
     }
 
-    public void DispatchKeyDown(Keys key)
+    public void DispatchKeyDown(Keys key, bool isShiftPressed = false)
     {
-        KeyDownReceived?.Invoke(key);
+        KeyDownReceived?.Invoke(key, isShiftPressed);
     }
 
     public void Dispose()
