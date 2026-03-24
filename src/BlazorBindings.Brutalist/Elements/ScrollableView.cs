@@ -527,6 +527,10 @@ public unsafe class YogaScrollableView : YogaView
 
     private float MaxScrollY => Math.Max(0f, _contentHeight - _viewportHeight);
 
+    internal float CurrentScrollX => _scrollX;
+
+    internal float CurrentScrollY => _scrollY;
+
     [Parameter]
     public ScrollController? ScrollController { get; set; }
 

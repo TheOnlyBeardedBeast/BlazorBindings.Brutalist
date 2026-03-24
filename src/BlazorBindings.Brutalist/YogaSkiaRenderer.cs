@@ -270,6 +270,7 @@ public class YogaSkiaRenderer : Renderer
         {
             canvas.Clear(SKColors.White);
             rootElement.Render();
+            YogaDragDropView.RenderDragPreviewOverlay(canvas);
         });
     }
 

@@ -1,0 +1,128 @@
+@page "/drag-drop"
+@using MaterialColorUtilities.Schemes
+
+<YogaView Direction="Yoga.YGFlexDirection.YGFlexDirectionColumn" Gap="16" AlignItems="stretch" Shrink="0">
+    <YogaText Shrink="0" FontSize="28" Color="@CurrentTheme.OnBackground.ToHexColor()" TextAlign="left">
+        Drag & Drop (Minimal)
+    </YogaText>
+
+    <YogaText Shrink="0" FontSize="14" Color="@CurrentTheme.OnSurfaceVariant.ToHexColor()" TextAlign="left" WrapText>
+        Drag the tile into the drop zone. @_tileData.Name
+    </YogaText>
+
+    <YogaView Direction="Yoga.YGFlexDirection.YGFlexDirectionRow" Gap="16" AlignItems="flex-start" Shrink="0">
+        <YogaDragDropView EnableDrag="true" DragType="tile" Scope="minimal" OnDragPreviewChanged="OnDragPreviewChanged"
+                          OnDragCompleted="OnDragCompleted" DragPreviewBorderRadius="10" Shrink="0" DragData="@_tileData">
+            <YogaView Width="220" Height="80" Background="@CurrentTheme.PrimaryContainer.ToHexColor()" BorderRadius="10"
+                      Padding="12" JustifyContent="center" Shrink="0">
+                <YogaText FontSize="14" Color="@CurrentTheme.OnPrimaryContainer.ToHexColor()" TextAlign="left">
+                    @_tileData.Name
+                </YogaText>
+            </YogaView>
+        </YogaDragDropView>
+
+        <YogaDragDropView EnableDrop="true" AcceptDragType="tile" Scope="minimal" OnDropStateChanged="OnDropZoneState"
+                          OnDrop="OnDrop" OnCanDrop="@CanAcceptTile" Shrink="0">
+            <YogaView Width="260" Height="140" BorderRadius="10" BorderWidth="2" Padding="12"
+                      Background="@DropZoneBackground" BorderColor="@DropZoneBorder" JustifyContent="center" Shrink="0">
+                <YogaText FontSize="14" Color="@CurrentTheme.OnSurface.ToHexColor()" TextAlign="left">
+                    Drop Zone
+                </YogaText>
+            </YogaView>
+        </YogaDragDropView>
+    </YogaView>
+
+    <YogaText FontSize="12" Color="@CurrentTheme.OnSurfaceVariant.ToHexColor()" TextAlign="left" WrapText>
+        @StatusText
+    </YogaText>
+</YogaView>
+
+@code {
+    [CascadingParameter]
+    public Scheme<uint> CurrentTheme { get; set; } = default!;
+
+    private record TileInfo(string Name, int Value);
+    private readonly TileInfo _tileData = new("Alpha", 42);
+
+    private int _dropCount;
+    private bool _dropZoneOver;
+    private bool _dropZoneCanDrop;
+    private string StatusText = "Drag the tile into the zone.";
+
+    private string DropZoneBackground => ResolveZoneBackground(_dropZoneOver, _dropZoneCanDrop);
+    private string DropZoneBorder => ResolveZoneBorder(_dropZoneOver, _dropZoneCanDrop);
+
+    private void OnDropZoneState(DropTargetStateChangedEventArgs args)
+    {
+        _dropZoneOver = args.IsDragOver;
+        _dropZoneCanDrop = args.CanDrop;
+        StateHasChanged();
+    }
+
+    private void OnDragPreviewChanged(DragPreviewEventArgs args)
+    {
+        if (!args.IsDragging)
+        {
+            StatusText = "Drag the tile into the zone.";
+            StateHasChanged();
+            return;
+        }
+
+        StatusText = args.CanDrop
+            ? "Drop available fro '" + (args.DragData as TileInfo)?.Name + "'"
+            : "No valid drop target";
+
+        StateHasChanged();
+    }
+
+    private void OnDragCompleted(DropEventArgs args)
+    {
+        Console.WriteLine($"Drag completed");
+        StatusText = "Drag completed.";
+        StateHasChanged();
+    }
+
+    private void OnDrop(DropEventArgs args)
+    {
+        _dropCount++;
+        var info = args.DragData as TileInfo;
+        StatusText = info is not null
+            ? $"Dropped '{info.Name}' (value={info.Value}). Total drops: {_dropCount}"
+            : $"Dropped {args.DragType}. Total drops: {_dropCount}";
+        StateHasChanged();
+    }
+
+    private bool CanAcceptTile(CanDropEventArgs args)
+    {
+        // Example: only accept tiles whose Value > 0
+        if (args.DragData is TileInfo info)
+        {
+            return info.Value > 0;
+        }
+        return true;
+    }
+
+    private string ResolveZoneBackground(bool over, bool canDrop)
+    {
+        if (!over)
+        {
+            return CurrentTheme.SurfaceContainerLow.ToHexColor();
+        }
+
+        return canDrop
+            ? CurrentTheme.PrimaryContainer.ToHexColor()
+            : CurrentTheme.ErrorContainer.ToHexColor();
+    }
+
+    private string ResolveZoneBorder(bool over, bool canDrop)
+    {
+        if (!over)
+        {
+            return CurrentTheme.OutlineVariant.ToHexColor();
+        }
+
+        return canDrop
+            ? CurrentTheme.Primary.ToHexColor()
+            : CurrentTheme.Error.ToHexColor();
+    }
+}
