@@ -29,7 +29,7 @@ public sealed class OpentkService : IBrutalistRenderSurface, IDisposable
     public event Action<SKPoint>? MouseClicked;
     public event Action<SKPoint>? MouseReleased;
     public event Action<SKPoint>? MouseMoved;
-    public event Action<SKPoint, float>? MouseWheelScrolled;
+    public event Action<SKPoint, float, float>? MouseWheelScrolled;
     public event Action<string>? TextInputReceived;
     public event Action<Keys, bool>? KeyDownReceived;
     public event Action<float, double>? FrameTick;
@@ -334,8 +334,9 @@ public sealed class OpentkService : IBrutalistRenderSurface, IDisposable
 
     private void EmitScrollDeltaFromMouseState()
     {
+        var deltaX = _window.MouseState.ScrollDelta.X;
         var deltaY = _window.MouseState.ScrollDelta.Y;
-        if (Math.Abs(deltaY) < float.Epsilon)
+        if (Math.Abs(deltaX) < float.Epsilon && Math.Abs(deltaY) < float.Epsilon)
         {
             return;
         }
@@ -349,7 +350,7 @@ public sealed class OpentkService : IBrutalistRenderSurface, IDisposable
             y /= DpiScaleY;
         }
 
-        MouseWheelScrolled?.Invoke(new SKPoint(x, y), deltaY);
+        MouseWheelScrolled?.Invoke(new SKPoint(x, y), deltaX, deltaY);
     }
 
     private void UploadSurfaceToTexture()

@@ -876,9 +876,14 @@ public unsafe class Element : NativeControlComponentBase
 
     public virtual bool DispatchScroll(SKPoint point, float deltaY)
     {
+        return DispatchScroll(point, 0f, deltaY);
+    }
+
+    public virtual bool DispatchScroll(SKPoint point, float deltaX, float deltaY)
+    {
         foreach (var childElement in GetChildrenInHitTestOrder(point))
         {
-            if (childElement.DispatchScroll(point, deltaY))
+            if (childElement.DispatchScroll(point, deltaX, deltaY))
             {
                 return true;
             }
@@ -889,7 +894,7 @@ public unsafe class Element : NativeControlComponentBase
             return false;
         }
 
-        return HandleScroll(deltaY);
+        return HandleScroll(deltaX, deltaY);
     }
 
     public virtual bool TryResolveCursor(SKPoint point, out bool isPointer)
@@ -1071,6 +1076,11 @@ public unsafe class Element : NativeControlComponentBase
     protected virtual bool HandleScroll(float deltaY)
     {
         return false;
+    }
+
+    protected virtual bool HandleScroll(float deltaX, float deltaY)
+    {
+        return HandleScroll(deltaY);
     }
 
     protected bool ContainsPoint(SKPoint point)

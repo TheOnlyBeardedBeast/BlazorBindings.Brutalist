@@ -1,0 +1,88 @@
+@page "/scrolling"
+@using MaterialColorUtilities.Schemes
+
+<YogaView Shrink="0">
+    <YogaText Shrink="0" FontSize="28" Color="@CurrentTheme.OnBackground.ToHexColor()" TextAlign="left">
+        Scrolling
+    </YogaText>
+    <YogaText Shrink="0" FontSize="14" Color="@CurrentTheme.OnSurfaceVariant.ToHexColor()" TextAlign="left">
+        `YogaScrollableView` supports vertical, horizontal, or dual-axis scrolling using the `ScrollAxes` parameter.
+    </YogaText>
+</YogaView>
+
+<YogaView Direction="Yoga.YGFlexDirection.YGFlexDirectionColumn" Gap="16" AlignItems="stretch">
+    <BrutalistCard BorderRadius="12" Padding="16" Gap="12">
+        <YogaText FontSize="18" Color="@CurrentTheme.OnBackground.ToHexColor()" TextAlign="left">
+            Vertical (Y)
+        </YogaText>
+        <YogaView Height="180" Background="@CurrentTheme.SurfaceContainerHigh.ToHexColor()" BorderRadius="10"
+                  Padding="8">
+            <YogaScrollableView ScrollAxes="BlazorBindings.Brutalist.Elements.ScrollAxes.Y" ShowScrollIndicator="true"
+                                ScrollSpeed="30">
+                <YogaView Direction="Yoga.YGFlexDirection.YGFlexDirectionColumn" Gap="8" Padding="4">
+                    @for (var i = 1; i <= 20; i++)
+                    {
+                        <YogaView Background="@CurrentTheme.Surface1.ToHexColor()" BorderRadius="8" Padding="10" Shrink="0">
+                            <YogaText FontSize="14" Color="@CurrentTheme.OnSurface.ToHexColor()" TextAlign="left">Item @i
+                            </YogaText>
+                        </YogaView>
+                    }
+                </YogaView>
+            </YogaScrollableView>
+        </YogaView>
+    </BrutalistCard>
+
+    <BrutalistCard BorderRadius="12" Padding="16" Gap="12">
+        <YogaText FontSize="18" Color="@CurrentTheme.OnBackground.ToHexColor()" TextAlign="left">
+            Horizontal (X)
+        </YogaText>
+        <YogaView Width="720" Height="170" Background="@CurrentTheme.SurfaceContainerHigh.ToHexColor()"
+                  BorderRadius="10" Padding="8" Shrink="0">
+            <YogaScrollableView ScrollAxes="BlazorBindings.Brutalist.Elements.ScrollAxes.X" ShowScrollIndicator="true"
+                                ScrollSpeed="30" PreventParentScroll>
+                <YogaView Direction="Yoga.YGFlexDirection.YGFlexDirectionRow" Gap="10" Padding="4" Width="3280">
+                    @for (var i = 1; i <= 14; i++)
+                    {
+                        <YogaView Width="220" Height="120" Background="@CurrentTheme.Surface1.ToHexColor()"
+                                  BorderRadius="10" Padding="10" Shrink="0" JustifyContent="center">
+                            <YogaText FontSize="14" Color="@CurrentTheme.OnSurface.ToHexColor()" TextAlign="left">Panel @i
+                            </YogaText>
+                        </YogaView>
+                    }
+                </YogaView>
+            </YogaScrollableView>
+        </YogaView>
+    </BrutalistCard>
+
+    <BrutalistCard BorderRadius="12" Padding="16" Gap="12">
+        <YogaText FontSize="18" Color="@CurrentTheme.OnBackground.ToHexColor()" TextAlign="left">
+            Both Axes (X + Y)
+        </YogaText>
+        <YogaView Width="720" Height="220" Background="@CurrentTheme.SurfaceContainerHigh.ToHexColor()"
+                  BorderRadius="10" Padding="8" Shrink="0">
+            <YogaScrollableView ScrollAxes="BlazorBindings.Brutalist.Elements.ScrollAxes.Both"
+                                ShowScrollIndicator="true" ScrollSpeed="30" PreventParentScroll>
+                <YogaView Direction="Yoga.YGFlexDirection.YGFlexDirectionColumn" Gap="10" Padding="4" Width="980">
+                    @for (var row = 1; row <= 8; row++)
+                    {
+                        <YogaView Direction="Yoga.YGFlexDirection.YGFlexDirectionRow" Gap="10">
+                            @for (var col = 1; col <= 5; col++)
+                            {
+                                <YogaView Width="180" Height="80" Background="@CurrentTheme.Surface1.ToHexColor()"
+                                          BorderRadius="10" Padding="10" Shrink="0" JustifyContent="center">
+                                    <YogaText FontSize="13" Color="@CurrentTheme.OnSurface.ToHexColor()" TextAlign="left">Cell
+                                        @row,@col</YogaText>
+                                    </YogaView>
+                                }
+                            </YogaView>
+                        }
+                    </YogaView>
+                </YogaScrollableView>
+            </YogaView>
+        </BrutalistCard>
+    </YogaView>
+
+@code {
+    [CascadingParameter]
+    public Scheme<uint> CurrentTheme { get; set; } = default!;
+}

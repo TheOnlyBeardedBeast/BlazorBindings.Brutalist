@@ -12,7 +12,7 @@ public sealed class ImageRenderService : IBrutalistRenderSurface, IDisposable
     public event Action<SKPoint>? MouseClicked;
     public event Action<SKPoint>? MouseReleased;
     public event Action<SKPoint>? MouseMoved;
-    public event Action<SKPoint, float>? MouseWheelScrolled;
+    public event Action<SKPoint, float, float>? MouseWheelScrolled;
     public event Action<string>? TextInputReceived;
     public event Action<Keys, bool>? KeyDownReceived;
     public event Action<float, double>? FrameTick;
@@ -140,7 +140,12 @@ public sealed class ImageRenderService : IBrutalistRenderSurface, IDisposable
 
     public void DispatchMouseWheel(SKPoint point, float deltaY)
     {
-        MouseWheelScrolled?.Invoke(point, deltaY);
+        MouseWheelScrolled?.Invoke(point, 0f, deltaY);
+    }
+
+    public void DispatchMouseWheel(SKPoint point, float deltaX, float deltaY)
+    {
+        MouseWheelScrolled?.Invoke(point, deltaX, deltaY);
     }
 
     public void DispatchTextInput(string text)

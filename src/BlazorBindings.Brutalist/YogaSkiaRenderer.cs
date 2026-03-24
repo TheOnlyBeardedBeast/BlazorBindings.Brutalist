@@ -188,12 +188,12 @@ public class YogaSkiaRenderer : Renderer
         });
     }
 
-    private void OnMouseWheelScrolled(SKPoint point, float deltaY)
+    private void OnMouseWheelScrolled(SKPoint point, float deltaX, float deltaY)
     {
         _ = Dispatcher.InvokeAsync(() =>
         {
             var root = GetRootElement();
-            if (root?.DispatchScroll(point, deltaY) == true)
+            if (root?.DispatchScroll(point, deltaX, deltaY) == true)
             {
                 RenderCurrentFrame();
             }
