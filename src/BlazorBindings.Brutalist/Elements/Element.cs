@@ -498,15 +498,19 @@ public unsafe class Element : NativeControlComponentBase
             {
                 var (topLeft, topRight, bottomRight, bottomLeft) = StyleParsers.ParseBorderRadius(BorderRadius);
 
+                var backgroundRect = rect;
+                var backgroundRadii = CreateCornerRadii(topLeft, topRight, bottomRight, bottomLeft);
+
+                if (!string.IsNullOrWhiteSpace(BorderWidth))
+                {
+                    var (bTop, bRight, bBottom, bLeft) = StyleParsers.ParseCssValue(BorderWidth);
+                    backgroundRect = CreateInnerRect(rect, bTop, bRight, bBottom, bLeft);
+                    backgroundRadii = CreateInnerCornerRadii(topLeft, topRight, bottomRight, bottomLeft, bTop, bRight, bBottom, bLeft);
+                }
+
                 // Use SKRoundRect for individual corner radii
                 var rrect = new SKRoundRect();
-                rrect.SetRectRadii(rect, new[]
-                {
-                    new SKPoint(topLeft, topLeft),     // Top-left
-                    new SKPoint(topRight, topRight),   // Top-right
-                    new SKPoint(bottomRight, bottomRight), // Bottom-right
-                    new SKPoint(bottomLeft, bottomLeft)    // Bottom-left
-                });
+                rrect.SetRectRadii(backgroundRect, backgroundRadii);
 
                 canvas.DrawRoundRect(rrect, paint);
             }
@@ -531,10 +535,13 @@ public unsafe class Element : NativeControlComponentBase
 
             if (top > 0 && Math.Abs(top - right) < float.Epsilon && Math.Abs(top - bottom) < float.Epsilon && Math.Abs(top - left) < float.Epsilon)
             {
+                // Use a filled even-odd ring (outer rrect minus inner rrect) instead of a
+                // stroked path. A stroke is centered on the path, causing the straight sides
+                // to appear half as thick and corners to look thicker due to join geometry.
+                // The fill approach gives uniform, pixel-perfect border thickness on every edge.
                 using var borderPaint = new SKPaint
                 {
-                    Style = SKPaintStyle.Stroke,
-                    StrokeWidth = top,
+                    Style = SKPaintStyle.Fill,
                     Color = color,
                     IsAntialias = true,
                 };
@@ -542,19 +549,26 @@ public unsafe class Element : NativeControlComponentBase
                 if (!string.IsNullOrWhiteSpace(BorderRadius))
                 {
                     var (topLeft, topRight, bottomRight, bottomLeft) = StyleParsers.ParseBorderRadius(BorderRadius);
-                    var rrect = new SKRoundRect();
-                    rrect.SetRectRadii(rect, new[]
-                    {
-                        new SKPoint(topLeft, topLeft),
-                        new SKPoint(topRight, topRight),
-                        new SKPoint(bottomRight, bottomRight),
-                        new SKPoint(bottomLeft, bottomLeft)
-                    });
-                    canvas.DrawRoundRect(rrect, borderPaint);
+
+                    var outerRRect = new SKRoundRect();
+                    outerRRect.SetRectRadii(rect, CreateCornerRadii(topLeft, topRight, bottomRight, bottomLeft));
+
+                    var innerRect = CreateInnerRect(rect, top, right, bottom, left);
+                    var innerRRect = new SKRoundRect();
+                    innerRRect.SetRectRadii(innerRect, CreateInnerCornerRadii(topLeft, topRight, bottomRight, bottomLeft, top, right, bottom, left));
+
+                    using var borderPath = new SKPath { FillType = SKPathFillType.EvenOdd };
+                    borderPath.AddRoundRect(outerRRect);
+                    borderPath.AddRoundRect(innerRRect);
+                    canvas.DrawPath(borderPath, borderPaint);
                 }
                 else
                 {
-                    canvas.DrawRect(rect, borderPaint);
+                    // No border radius — draw as four filled rects for the same crisp result.
+                    canvas.DrawRect(SKRect.Create(rect.Left, rect.Top, rect.Width, top), borderPaint);
+                    canvas.DrawRect(SKRect.Create(rect.Right - top, rect.Top, top, rect.Height), borderPaint);
+                    canvas.DrawRect(SKRect.Create(rect.Left, rect.Bottom - top, rect.Width, top), borderPaint);
+                    canvas.DrawRect(SKRect.Create(rect.Left, rect.Top, top, rect.Height), borderPaint);
                 }
             }
             else
@@ -583,30 +597,12 @@ public unsafe class Element : NativeControlComponentBase
             var color = string.IsNullOrWhiteSpace(OutlineColor) ? SKColors.Black : SKColor.Parse(OutlineColor);
             var outlineOffset = StyleParsers.ParseFloat(OutlineOffset) ?? 0f;
 
+            // Borders are now rendered as filled rings entirely inside element bounds,
+            // so no border width bleeds outside rect and no outward compensation is needed.
             var borderOutTop = 0f;
             var borderOutRight = 0f;
             var borderOutBottom = 0f;
             var borderOutLeft = 0f;
-
-            if (!string.IsNullOrWhiteSpace(BorderWidth))
-            {
-                var (bTop, bRight, bBottom, bLeft) = StyleParsers.ParseCssValue(BorderWidth);
-                var isUniformBorder = bTop > 0
-                    && Math.Abs(bTop - bRight) < float.Epsilon
-                    && Math.Abs(bTop - bBottom) < float.Epsilon
-                    && Math.Abs(bTop - bLeft) < float.Epsilon;
-
-                // Uniform borders are currently rendered with stroke centered on element bounds,
-                // so half of the width extends outside and must be respected by outline.
-                if (isUniformBorder)
-                {
-                    var half = bTop / 2f;
-                    borderOutTop = half;
-                    borderOutRight = half;
-                    borderOutBottom = half;
-                    borderOutLeft = half;
-                }
-            }
 
             if (top > 0 && Math.Abs(top - right) < float.Epsilon && Math.Abs(top - bottom) < float.Epsilon && Math.Abs(top - left) < float.Epsilon)
             {
@@ -1290,6 +1286,44 @@ public unsafe class Element : NativeControlComponentBase
         }
 
         return overflow == YGOverflow.YGOverflowHidden;
+    }
+
+    private static SKRect CreateInnerRect(SKRect outerRect, float top, float right, float bottom, float left)
+    {
+        var width = Math.Max(0f, outerRect.Width - left - right);
+        var height = Math.Max(0f, outerRect.Height - top - bottom);
+
+        return SKRect.Create(outerRect.Left + left, outerRect.Top + top, width, height);
+    }
+
+    private static SKPoint[] CreateCornerRadii(float topLeft, float topRight, float bottomRight, float bottomLeft)
+    {
+        return
+        [
+            new SKPoint(topLeft, topLeft),
+            new SKPoint(topRight, topRight),
+            new SKPoint(bottomRight, bottomRight),
+            new SKPoint(bottomLeft, bottomLeft)
+        ];
+    }
+
+    private static SKPoint[] CreateInnerCornerRadii(
+        float topLeft,
+        float topRight,
+        float bottomRight,
+        float bottomLeft,
+        float top,
+        float right,
+        float bottom,
+        float left)
+    {
+        return
+        [
+            new SKPoint(Math.Max(0f, topLeft - left), Math.Max(0f, topLeft - top)),
+            new SKPoint(Math.Max(0f, topRight - right), Math.Max(0f, topRight - top)),
+            new SKPoint(Math.Max(0f, bottomRight - right), Math.Max(0f, bottomRight - bottom)),
+            new SKPoint(Math.Max(0f, bottomLeft - left), Math.Max(0f, bottomLeft - bottom))
+        ];
     }
 
     public (float top, float right, float bottom, float left) GetOffset()
