@@ -1,4 +1,3 @@
-using OpenTK.Windowing.GraphicsLibraryFramework;
 using SkiaSharp;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -405,14 +404,14 @@ public class YogaTextInput : YogaView, IDisposable
         return true;
     }
 
-    protected override bool HandleKeyDown(Keys key)
+    protected override bool HandleKeyDown(BrutalistKey key)
     {
         return key switch
         {
-            Keys.Left => HandleLeftArrow(),
-            Keys.Right => HandleRightArrow(),
-            Keys.Backspace => HandleBackspace(),
-            Keys.Delete => HandleDelete(),
+            BrutalistKey.Left => HandleLeftArrow(),
+            BrutalistKey.Right => HandleRightArrow(),
+            BrutalistKey.Backspace => HandleBackspace(),
+            BrutalistKey.Delete => HandleDelete(),
             _ => false,
         };
     }

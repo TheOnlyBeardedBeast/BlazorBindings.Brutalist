@@ -3,18 +3,18 @@ using Brutalis.CustomComponentsSample;
 using Microsoft.Extensions.DependencyInjection;
 
 var builder = new BrutalistAppBuilder();
-builder.AddCoreServices();
+builder.AddCoreServicesWithSilk();
 
 var services = builder.Build();
 var renderer = services.GetRequiredService<YogaSkiaRenderer>();
-var opentkService = services.GetRequiredService<OpentkService>();
+var silkService = services.GetRequiredService<SilkService>();
 
 await renderer.Dispatcher.InvokeAsync(async () =>
 {
     await renderer.AddRootComponent<App>();
 });
 
-opentkService.Start();
+silkService.Start();
 
 if (!OperatingSystem.IsMacOS())
 {

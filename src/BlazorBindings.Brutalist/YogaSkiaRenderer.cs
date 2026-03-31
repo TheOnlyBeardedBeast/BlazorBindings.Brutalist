@@ -1,7 +1,6 @@
 using BlazorBindings.Brutalist.Elements;
 using Microsoft.AspNetCore.Components.RenderTree;
 using Microsoft.Extensions.Logging;
-using OpenTK.Windowing.GraphicsLibraryFramework;
 using SkiaSharp;
 using System.Runtime.ExceptionServices;
 
@@ -200,11 +199,11 @@ public class YogaSkiaRenderer : Renderer
         });
     }
 
-    private void OnKeyDownReceived(Keys key, bool isShiftPressed)
+    private void OnKeyDownReceived(BrutalistKey key, bool isShiftPressed)
     {
         _ = Dispatcher.InvokeAsync(() =>
         {
-            if (key == Keys.Tab)
+            if (key == BrutalistKey.Tab)
             {
                 if (TryNavigateFocusByTab(isShiftPressed))
                 {

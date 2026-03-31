@@ -1,4 +1,3 @@
-using OpenTK.Windowing.GraphicsLibraryFramework;
 using SkiaSharp;
 
 namespace BlazorBindings.Brutalist;
@@ -11,7 +10,7 @@ public interface IBrutalistRenderSurface
     event Action<SKPoint>? MouseMoved;
     event Action<SKPoint, float, float>? MouseWheelScrolled;
     event Action<string>? TextInputReceived;
-    event Action<Keys, bool>? KeyDownReceived;
+    event Action<BrutalistKey, bool>? KeyDownReceived;
     event Action<float, double>? FrameTick;
 
     int Width { get; }

@@ -1,4 +1,3 @@
-using OpenTK.Windowing.GraphicsLibraryFramework;
 using SkiaSharp;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -122,17 +121,17 @@ public class YogaTextArea : YogaTextInput
         return true;
     }
 
-    protected override bool HandleKeyDown(Keys key)
+    protected override bool HandleKeyDown(BrutalistKey key)
     {
         return key switch
         {
-            Keys.Enter => InsertNewLine(),
-            Keys.Left => HandleLeftArrow(),
-            Keys.Right => HandleRightArrow(),
-            Keys.Up => MoveCaretUp(),
-            Keys.Down => MoveCaretDown(),
-            Keys.Backspace => HandleBackspace(),
-            Keys.Delete => HandleDelete(),
+            BrutalistKey.Enter => InsertNewLine(),
+            BrutalistKey.Left => HandleLeftArrow(),
+            BrutalistKey.Right => HandleRightArrow(),
+            BrutalistKey.Up => MoveCaretUp(),
+            BrutalistKey.Down => MoveCaretDown(),
+            BrutalistKey.Backspace => HandleBackspace(),
+            BrutalistKey.Delete => HandleDelete(),
             _ => false,
         };
     }

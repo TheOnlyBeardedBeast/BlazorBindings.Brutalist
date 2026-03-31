@@ -1,6 +1,5 @@
 using SkiaSharp;
 using System.Runtime.InteropServices;
-using OpenTK.Windowing.GraphicsLibraryFramework;
 using Yoga;
 
 namespace BlazorBindings.Brutalist.Elements;
@@ -865,7 +864,7 @@ public unsafe class Element : NativeControlComponentBase
         return HandleTextInput(text);
     }
 
-    public virtual bool DispatchKeyDown(Keys key)
+    public virtual bool DispatchKeyDown(BrutalistKey key)
     {
         return HandleKeyDown(key);
     }
@@ -1064,7 +1063,7 @@ public unsafe class Element : NativeControlComponentBase
         return false;
     }
 
-    protected virtual bool HandleKeyDown(Keys key)
+    protected virtual bool HandleKeyDown(BrutalistKey key)
     {
         return false;
     }

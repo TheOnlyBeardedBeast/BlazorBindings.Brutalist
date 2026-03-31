@@ -1,4 +1,3 @@
-using OpenTK.Windowing.GraphicsLibraryFramework;
 using SkiaSharp;
 
 namespace BlazorBindings.Brutalist;
@@ -14,7 +13,7 @@ public sealed class ImageRenderService : IBrutalistRenderSurface, IDisposable
     public event Action<SKPoint>? MouseMoved;
     public event Action<SKPoint, float, float>? MouseWheelScrolled;
     public event Action<string>? TextInputReceived;
-    public event Action<Keys, bool>? KeyDownReceived;
+    public event Action<BrutalistKey, bool>? KeyDownReceived;
     public event Action<float, double>? FrameTick;
 
     public int Width { get; private set; }
@@ -156,7 +155,7 @@ public sealed class ImageRenderService : IBrutalistRenderSurface, IDisposable
         }
     }
 
-    public void DispatchKeyDown(Keys key, bool isShiftPressed = false)
+    public void DispatchKeyDown(BrutalistKey key, bool isShiftPressed = false)
     {
         KeyDownReceived?.Invoke(key, isShiftPressed);
     }

@@ -1,4 +1,3 @@
-using OpenTK.Windowing.GraphicsLibraryFramework;
 using SkiaSharp;
 
 namespace BlazorBindings.Brutalist.Elements;
@@ -67,14 +66,14 @@ public class YogaClickableView : YogaView, IDisposable
         return InvokeClickHandlers();
     }
 
-    protected override bool HandleKeyDown(Keys key)
+    protected override bool HandleKeyDown(BrutalistKey key)
     {
         if (Disabled)
         {
             return false;
         }
 
-        if (key != Keys.Enter && key != Keys.KeyPadEnter)
+        if (key != BrutalistKey.Enter && key != BrutalistKey.KeyPadEnter)
         {
             return false;
         }

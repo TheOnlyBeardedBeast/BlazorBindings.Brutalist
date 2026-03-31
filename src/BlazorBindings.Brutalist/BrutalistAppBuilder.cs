@@ -7,20 +7,20 @@ namespace BlazorBindings.Brutalist;
 public class BrutalistAppBuilder
 {
     public IServiceCollection Services { get; } = new ServiceCollection();
-    public IServiceProvider ServiceProvider { get; private set; }
+    public IServiceProvider ServiceProvider { get; private set; } = default!;
 
     public BrutalistAppBuilder AddCoreServices()
     {
         Console.WriteLine("[BrutalistAppBuilder] Adding core services...");
         Console.Out.Flush();
 
-        // Create OpentkService which will create the GPU-backed surface
-        var opentkService = new OpentkService();
-        Console.WriteLine("[BrutalistAppBuilder] OpentkService created");
+        // Create Sdl3Service which will create the GPU-backed surface
+        var sdl3Service = new Sdl3Service();
+        Console.WriteLine("[BrutalistAppBuilder] Sdl3Service created");
         Console.Out.Flush();
 
-        Services.AddSingleton(opentkService);
-        Services.AddSingleton<IBrutalistRenderSurface>(opentkService);
+        Services.AddSingleton(sdl3Service);
+        Services.AddSingleton<IBrutalistRenderSurface>(sdl3Service);
 
         AddSharedCoreServices();
 
@@ -45,12 +45,31 @@ public class BrutalistAppBuilder
         return this;
     }
 
+    public BrutalistAppBuilder AddCoreServicesWithSilk()
+    {
+        Console.WriteLine("[BrutalistAppBuilder] Adding core services with Silk.NET...");
+        Console.Out.Flush();
+
+        var silkService = new SilkService();
+        Console.WriteLine("[BrutalistAppBuilder] SilkService created");
+        Console.Out.Flush();
+
+        Services.AddSingleton(silkService);
+        Services.AddSingleton<IBrutalistRenderSurface>(silkService);
+
+        AddSharedCoreServices();
+
+        Console.WriteLine("[BrutalistAppBuilder] Core services with Silk.NET added");
+        Console.Out.Flush();
+        return this;
+    }
+
     private void AddSharedCoreServices()
     {
         Services.AddSingleton<SynchronizationContext>(sp =>
         {
             SynchronizationContext.SetSynchronizationContext(new SynchronizationContext());
-            return SynchronizationContext.Current;
+            return SynchronizationContext.Current ?? new SynchronizationContext();
         });
         Services.AddLogging(builder => builder.AddConsole());
         Services.AddSingleton<NavigationManager, BrutalistNavigationManager>();
