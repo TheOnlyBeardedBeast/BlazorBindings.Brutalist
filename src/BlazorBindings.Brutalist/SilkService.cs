@@ -3,6 +3,7 @@ using Silk.NET.Maths;
 using Silk.NET.OpenGL;
 using Silk.NET.Windowing;
 using SkiaSharp;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
 
@@ -22,7 +23,8 @@ public sealed class SilkService : IBrutalistRenderSurface, IDisposable
 
     // ─── Skia surface ─────────────────────────────────────────────────────────
     private readonly object _surfaceLock = new();
-    private byte[]? _pixelBuffer;
+    private nint _pixelBufferPtr;
+    private nuint _pixelBufferCapacity;
     private volatile bool _surfaceDirty = true;
     private int _textureWidth;
     private int _textureHeight;
@@ -489,35 +491,44 @@ public sealed class SilkService : IBrutalistRenderSurface, IDisposable
                 return;
             }
 
-            var requiredSize = _framebufferWidth * _framebufferHeight * 4;
-            if (_pixelBuffer is null || _pixelBuffer.Length < requiredSize)
-            {
-                _pixelBuffer = new byte[requiredSize];
-            }
+            var requiredSize = checked((nuint)(_framebufferWidth * _framebufferHeight * 4));
+            EnsurePixelBufferCapacity(requiredSize);
 
-            var handle = GCHandle.Alloc(_pixelBuffer, GCHandleType.Pinned);
-            try
-            {
-                var imageInfo = new SKImageInfo(
-                    _framebufferWidth, _framebufferHeight,
-                    SKColorType.Rgba8888, SKAlphaType.Premul);
-                Surface.ReadPixels(imageInfo, handle.AddrOfPinnedObject(), _framebufferWidth * 4, 0, 0);
+            var imageInfo = new SKImageInfo(
+                _framebufferWidth, _framebufferHeight,
+                SKColorType.Rgba8888, SKAlphaType.Premul);
+            Surface.ReadPixels(imageInfo, _pixelBufferPtr, _framebufferWidth * 4, 0, 0);
 
-                _gl.BindTexture(TextureTarget.Texture2D, _textureId);
-                _gl.TexSubImage2D(
-                    TextureTarget.Texture2D,
-                    0, 0, 0,
-                    (uint)_framebufferWidth, (uint)_framebufferHeight,
-                    PixelFormat.Rgba, PixelType.UnsignedByte,
-                    (void*)handle.AddrOfPinnedObject());
+            _gl.BindTexture(TextureTarget.Texture2D, _textureId);
+            _gl.TexSubImage2D(
+                TextureTarget.Texture2D,
+                0, 0, 0,
+                (uint)_framebufferWidth, (uint)_framebufferHeight,
+                PixelFormat.Rgba, PixelType.UnsignedByte,
+                (void*)_pixelBufferPtr);
 
-                _surfaceDirty = false;
-            }
-            finally
-            {
-                handle.Free();
-            }
+            _surfaceDirty = false;
         }
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private unsafe void EnsurePixelBufferCapacity(nuint requiredSize)
+    {
+        if (_pixelBufferPtr != 0 && _pixelBufferCapacity >= requiredSize)
+        {
+            return;
+        }
+
+        if (_pixelBufferPtr == 0)
+        {
+            _pixelBufferPtr = (nint)NativeMemory.Alloc(requiredSize);
+        }
+        else
+        {
+            _pixelBufferPtr = (nint)NativeMemory.Realloc((void*)_pixelBufferPtr, requiredSize);
+        }
+
+        _pixelBufferCapacity = requiredSize;
     }
 
     private unsafe void EnsureTextureStorage(int width, int height)
@@ -662,6 +673,16 @@ public sealed class SilkService : IBrutalistRenderSurface, IDisposable
         if (_vbo != 0) _gl.DeleteBuffer(_vbo);
         if (_vao != 0) _gl.DeleteVertexArray(_vao);
         if (_shaderProgram != 0) _gl.DeleteProgram(_shaderProgram);
+
+        if (_pixelBufferPtr != 0)
+        {
+            unsafe
+            {
+                NativeMemory.Free((void*)_pixelBufferPtr);
+            }
+            _pixelBufferPtr = 0;
+            _pixelBufferCapacity = 0;
+        }
 
         _input?.Dispose();
         _gl?.Dispose();
