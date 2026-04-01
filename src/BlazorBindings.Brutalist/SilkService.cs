@@ -16,6 +16,8 @@ namespace BlazorBindings.Brutalist;
 /// </summary>
 public sealed class SilkService : IBrutalistRenderSurface, IDisposable
 {
+    private const float MaxScrollDeltaPerUpdate = 3.5f;
+
     // ─── Silk.NET handles ─────────────────────────────────────────────────────
     private readonly IWindow _window;
     private GL _gl = null!;
@@ -81,8 +83,8 @@ public sealed class SilkService : IBrutalistRenderSurface, IDisposable
             Title = title,
             API = GraphicsAPI.Default, // OpenGL 3.3 Core (forward-compatible)
             VSync = true,
-            FramesPerSecond = 60,
-            IsEventDriven = true, // We'll drive the loop manually to control update vs render timing
+            FramesPerSecond = 40,
+            IsEventDriven = true,
         };
 
         _window = Window.Create(options);
@@ -214,21 +216,7 @@ public sealed class SilkService : IBrutalistRenderSurface, IDisposable
             keyboard.KeyChar += OnKeyChar;
         }
 
-        // Sync actual sizes from the realised window / framebuffer.
-        var fb = _window.FramebufferSize;
-        var sz = _window.Size;
-        Width = Math.Max(1, sz.X);
-        Height = Math.Max(1, sz.Y);
-        _framebufferWidth = Math.Max(1, fb.X);
-        _framebufferHeight = Math.Max(1, fb.Y);
-        DpiScaleX = (float)_framebufferWidth / Width;
-        DpiScaleY = (float)_framebufferHeight / Height;
-
-        lock (_surfaceLock)
-        {
-            Surface.Dispose();
-            Surface = CreateSurface(_framebufferWidth, _framebufferHeight);
-        }
+        SyncWindowMetrics(recreateSurface: true, notifyResize: false);
 
         InitGl();
 
@@ -237,63 +225,12 @@ public sealed class SilkService : IBrutalistRenderSurface, IDisposable
 
     private void OnResize(Vector2D<int> size)
     {
-        var nextWidth = Math.Max(1, size.X);
-        var nextHeight = Math.Max(1, size.Y);
-
-        if (Width == nextWidth && Height == nextHeight)
-        {
-            return;
-        }
-
-        Width = nextWidth;
-        Height = nextHeight;
-
-        // Keep DPI scales coherent even when framebuffer size is unchanged.
-        var fb = _window.FramebufferSize;
-        _framebufferWidth = Math.Max(1, fb.X);
-        _framebufferHeight = Math.Max(1, fb.Y);
-        DpiScaleX = (float)_framebufferWidth / Width;
-        DpiScaleY = (float)_framebufferHeight / Height;
-
-        // Logical-size changes must notify YogaWindow even if framebuffer resize does not fire.
-        _surfaceDirty = true;
-        SurfaceResized?.Invoke();
+        SyncWindowMetrics(recreateSurface: true, notifyResize: true);
     }
 
     private void OnFramebufferResize(Vector2D<int> size)
     {
-        var fbW = Math.Max(1, size.X);
-        var fbH = Math.Max(1, size.Y);
-
-        _framebufferWidth = fbW;
-        _framebufferHeight = fbH;
-        DpiScaleX = (float)_framebufferWidth / Width;
-        DpiScaleY = (float)_framebufferHeight / Height;
-
-        _gl.Viewport(0, 0, (uint)fbW, (uint)fbH);
-
-        lock (_surfaceLock)
-        {
-            var oldSurface = Surface;
-            Surface = CreateSurface(fbW, fbH);
-
-            // Preserve previous frame to avoid black flash.
-            using var oldImage = oldSurface.Snapshot();
-            if (oldImage is not null)
-            {
-                Surface.Canvas.Clear(SKColors.White);
-                Surface.Canvas.DrawImage(oldImage, new SKRect(0, 0, fbW, fbH));
-                Surface.Flush();
-            }
-
-            oldSurface.Dispose();
-            _surfaceDirty = true;
-        }
-
-        EnsureTextureStorage(fbW, fbH);
-        SurfaceResized?.Invoke();
-
-        Console.WriteLine($"[SilkService.OnFramebufferResize] Logical {Width}x{Height}, Framebuffer {_framebufferWidth}x{_framebufferHeight}, Scale {DpiScaleX:0.##}x{DpiScaleY:0.##}");
+        SyncWindowMetrics(recreateSurface: true, notifyResize: true);
     }
 
     private void OnUpdate(double deltaTime)
@@ -373,25 +310,73 @@ public sealed class SilkService : IBrutalistRenderSurface, IDisposable
 
     private void EmitPendingScrollWheel()
     {
-        float deltaX;
-        float deltaY;
+        float emittedX;
+        float emittedY;
         System.Numerics.Vector2 mousePosition;
 
         lock (_scrollStateLock)
         {
-            deltaX = _pendingScrollDeltaX;
-            deltaY = _pendingScrollDeltaY;
+            emittedX = Math.Clamp(_pendingScrollDeltaX, -MaxScrollDeltaPerUpdate, MaxScrollDeltaPerUpdate);
+            emittedY = Math.Clamp(_pendingScrollDeltaY, -MaxScrollDeltaPerUpdate, MaxScrollDeltaPerUpdate);
             mousePosition = _lastMousePosition;
-            _pendingScrollDeltaX = 0f;
-            _pendingScrollDeltaY = 0f;
+            _pendingScrollDeltaX -= emittedX;
+            _pendingScrollDeltaY -= emittedY;
         }
 
-        if (Math.Abs(deltaX) < float.Epsilon && Math.Abs(deltaY) < float.Epsilon)
+        if (Math.Abs(emittedX) < float.Epsilon && Math.Abs(emittedY) < float.Epsilon)
         {
             return;
         }
 
-        MouseWheelScrolled?.Invoke(NormalizeMousePosition(mousePosition), deltaX, deltaY);
+        MouseWheelScrolled?.Invoke(NormalizeMousePosition(mousePosition), emittedX, emittedY);
+    }
+
+    private void SyncWindowMetrics(bool recreateSurface, bool notifyResize)
+    {
+        var nextWidth = Math.Max(1, _window.Size.X);
+        var nextHeight = Math.Max(1, _window.Size.Y);
+        var nextFramebufferWidth = Math.Max(1, _window.FramebufferSize.X);
+        var nextFramebufferHeight = Math.Max(1, _window.FramebufferSize.Y);
+
+        var logicalChanged = Width != nextWidth || Height != nextHeight;
+        var framebufferChanged = _framebufferWidth != nextFramebufferWidth || _framebufferHeight != nextFramebufferHeight;
+
+        Width = nextWidth;
+        Height = nextHeight;
+        _framebufferWidth = nextFramebufferWidth;
+        _framebufferHeight = nextFramebufferHeight;
+        DpiScaleX = (float)_framebufferWidth / Width;
+        DpiScaleY = (float)_framebufferHeight / Height;
+
+        if (_gl is not null)
+        {
+            _gl.Viewport(0, 0, (uint)_framebufferWidth, (uint)_framebufferHeight);
+        }
+
+        if (recreateSurface && framebufferChanged)
+        {
+            lock (_surfaceLock)
+            {
+                var oldSurface = Surface;
+                Surface = CreateSurface(_framebufferWidth, _framebufferHeight);
+                oldSurface.Dispose();
+                _surfaceDirty = true;
+            }
+
+            if (_textureId != 0)
+            {
+                EnsureTextureStorage(_framebufferWidth, _framebufferHeight);
+            }
+        }
+        else if (logicalChanged)
+        {
+            _surfaceDirty = true;
+        }
+
+        if (notifyResize && (logicalChanged || framebufferChanged))
+        {
+            SurfaceResized?.Invoke();
+        }
     }
 
     private void OnKeyDown(IKeyboard keyboard, Key key, int scancode)
