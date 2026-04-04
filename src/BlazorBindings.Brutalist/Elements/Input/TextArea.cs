@@ -51,6 +51,7 @@ public class YogaTextArea : YogaTextInput
         using var font = new SKFont
         {
             Size = element.FontSize ?? 16f,
+            Subpixel = true,
         };
 
         var lineHeight = element.LineHeight ?? (font.Metrics.Descent - font.Metrics.Ascent);
@@ -165,6 +166,7 @@ public class YogaTextArea : YogaTextInput
         using var font = new SKFont
         {
             Size = FontSize ?? 16f,
+            Subpixel = true,
         };
 
         var displayValue = GetDisplayValue();
@@ -200,7 +202,7 @@ public class YogaTextArea : YogaTextInput
 
     private bool MoveCaretUp()
     {
-        using var font = new SKFont { Size = FontSize ?? 16f };
+        using var font = new SKFont { Size = FontSize ?? 16f, Subpixel = true };
         var display = GetDisplayValue();
         var wrapWidth = GetCurrentWrapWidth();
         var lines = BuildLineLayout(display, wrapWidth, font, WrapText);
@@ -257,7 +259,7 @@ public class YogaTextArea : YogaTextInput
 
     private bool MoveCaretDown()
     {
-        using var font = new SKFont { Size = FontSize ?? 16f };
+        using var font = new SKFont { Size = FontSize ?? 16f, Subpixel = true };
         var display = GetDisplayValue();
         var wrapWidth = GetCurrentWrapWidth();
         var lines = BuildLineLayout(display, wrapWidth, font, WrapText);
@@ -346,6 +348,7 @@ public class YogaTextArea : YogaTextInput
         using var font = new SKFont
         {
             Size = FontSize ?? 16f,
+            Subpixel = true,
         };
 
         using var paint = new SKPaint
@@ -446,6 +449,7 @@ public class YogaTextArea : YogaTextInput
         using var font = new SKFont
         {
             Size = FontSize ?? 16f,
+            Subpixel = true,
         };
 
         var displayValue = GetDisplayValue();

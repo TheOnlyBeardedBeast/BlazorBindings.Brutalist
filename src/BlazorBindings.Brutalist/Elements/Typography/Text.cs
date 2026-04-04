@@ -112,6 +112,7 @@ public unsafe class YogaText : YogaView, IHandleChildContentText
         {
             Size = element.FontSize ?? 16f,
             Typeface = element.GetOrCreateTypeface(),
+            Subpixel = true,
         };
 
         var measuredWidth = font.MeasureText(element.Text);
@@ -345,6 +346,7 @@ public unsafe class YogaText : YogaView, IHandleChildContentText
         {
             Size = FontSize ?? 16f,
             Typeface = GetOrCreateTypeface(),
+            Subpixel = true,
         };
 
         var resolvedTextAlign = GetResolvedTextAlign();

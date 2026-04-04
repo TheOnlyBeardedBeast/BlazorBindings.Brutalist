@@ -191,6 +191,7 @@ public class YogaTextInput : YogaView, IDisposable
         using var font = new SKFont
         {
             Size = FontSize ?? 16f,
+            Subpixel = true,
         };
 
         var scrollOffset = CalculateScrollOffset(font, textBounds, displayValue);
@@ -274,6 +275,7 @@ public class YogaTextInput : YogaView, IDisposable
         using var font = new SKFont
         {
             Size = FontSize ?? 16f,
+            Subpixel = true,
         };
 
         var displayValue = GetDisplayValue();
@@ -445,6 +447,7 @@ public class YogaTextInput : YogaView, IDisposable
         using var font = new SKFont
         {
             Size = FontSize ?? 16f,
+            Subpixel = true,
         };
 
         var displayValue = GetDisplayValue();

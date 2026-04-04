@@ -100,7 +100,7 @@ public class YogaSkiaRenderer : Renderer
         _renderSurface.SaveSurfaceToFile(filePath);
     }
 
-    public byte[] RenderToImage(SKEncodedImageFormat format = SKEncodedImageFormat.Png, int quality = 90)
+    public byte[] RenderToImage(SKEncodedImageFormat format = SKEncodedImageFormat.Png, int quality = 100)
     {
         RenderCurrentFrame();
         using var image = _renderSurface.Surface.Snapshot();
