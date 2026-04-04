@@ -1,51 +1,141 @@
-# BlazorBindings.Maui
+# brutalist
 
-[![Nuget](https://img.shields.io/nuget/v/BlazorBindings.Maui)](https://www.nuget.org/packages/BlazorBindings.Maui/)
-[![Join Discord](https://img.shields.io/badge/discord-join%20chat-46BC99)](https://discord.com/channels/732297728826277939/734865521400610856)
+brutalist is a Blazor-style native UI runtime focused on flexible component composition, high-performance rendering, and modern cross-platform app hosting.
 
-## Getting Started
+It keeps the Razor authoring model you already know, while targeting a custom rendering and layout stack instead of HTML.
 
-Check out the documentation for how to build your first app: https://dreamescaper.github.io/MobileBlazorBindingsDocs
+## Core technologies
 
-## What is it?
+- C# and Razor components for declarative UI
+- Blazor component model for composition and state updates
+- Yoga for layout engine and flex behavior
+- Skia for drawing and rendering
+- Slint for runtime hosting and window integration
+- Material-inspired component layer built in Brutalist packages
 
-Maui Blazor Bindings enable developers to build native and hybrid mobile apps using C# and .NET for Android, iOS, Windows, macOS, and Tizen using familiar web programming patterns. This means you can use the Blazor programming model and Razor syntax to define UI components and behaviors of an application. The UI components that are included are based on MAUI native UI controls, which results in beautiful native mobile apps.
+## Quick start tutorial
 
-Here is a sample Counter component that renders native UI, which may look familiar to Blazor developers, that increments a value on each button press:
+### 1. Prerequisites
 
-```xml
-<StackLayout>
-    <Label FontSize="30">You pressed @count times </Label>
-    <Button Text="+1" OnClick="@HandleClick" />
-</StackLayout>
+- .NET SDK 9.0+
+- macOS, Windows, or Linux development environment
+
+### 2. Clone and open
+
+```bash
+git clone https://github.com/dreamescaper/BlazorBindings.Maui.git
+cd BlazorBindings.Maui
+```
+
+### 3. Run the custom components sample
+
+```bash
+cd samples/Brutalist.CustomComponentsSample
+dotnet run
+```
+
+### 4. Explore the sample pages
+
+Open and edit pages under:
+
+- samples/Brutalist.CustomComponentsSample/Content
+
+For example:
+
+- Home.razor
+- Buttons.razor
+- Sliders.razor
+- DragDrop.razor
+
+## Usage examples
+
+### Example: simple page with Material text and button
+
+```razor
+@page "/hello"
+@using MaterialColorUtilities.Schemes
+
+<YogaView Direction="Yoga.YGFlexDirection.YGFlexDirectionColumn" Gap="12" Padding="24">
+        <MaterialText FontSize="MaterialFontSize.HeadlineMedium" TextAlign="left">
+                Hello brutalist
+        </MaterialText>
+
+        <MaterialText FontSize="MaterialFontSize.BodyMedium" TextAlign="left" WrapText>
+                This UI is authored with Razor and rendered through Yoga + Skia + Slint.
+        </MaterialText>
+
+        <Button Label="Click me" OnClick="HandleClick" />
+        <MaterialText FontSize="MaterialFontSize.BodySmall" TextAlign="left">Count: @count</MaterialText>
+</YogaView>
 
 @code {
-    int count;
+        private int count;
 
-    void HandleClick()
-    {
-        count++;
-    }
+        private void HandleClick()
+        {
+                count++;
+        }
 }
 ```
 
-Notice that the Blazor model is present with code sitting side by side the user interface markup that leverages Razor syntax with mobile specific components. This will feel very natural for any web developer that has ever used Razor syntax in the past. Now with the Experimental Mobile Blazor Bindings you can leverage your existing web skills and knowledge to build native and hybrid mobile apps using C# and .NET for Android, iOS, Windows, macOS, and Tizen.
+### Example: app bootstrap
 
-Here is the code above running in the Android Emulator:
+```csharp
+using BlazorBindings.Brutalist;
+using Microsoft.Extensions.DependencyInjection;
 
-<img src="https://devblogs.microsoft.com/aspnet/wp-content/uploads/sites/16/2020/01/blazor-android-counter-2.gif" alt="Clicking increment button in Android emulator" width="300" height="533" class="aligncenter size-full wp-image-23061" />
+var builder = new BrutalistAppBuilder();
+builder.AddCoreServicesWithSilk();
 
-## About this repository
+var services = builder.Build();
+var renderer = services.GetRequiredService<YogaSkiaRenderer>();
 
-This repository is a fork of Microsoft's [Experimental MobileBlazorBindings](https://github.com/dotnet/MobileBlazorBindings), which I decided to fork and maintain separately. If at any point of time Microsoft developers decide to push that repository moving forward, I'll gladly contribute all of my changes to the original repository. 
+await renderer.Dispatcher.InvokeAsync(async () =>
+{
+        await renderer.AddRootComponent<App>();
+});
+```
 
-# Code of Conduct
+Note: the current repository API uses AddCoreServicesWithSilk in sample startup code.
 
-This project has adopted the code of conduct defined by the Contributor Covenant
-to clarify expected behavior in our community.
+## Project structure
 
-For more information, see the [.NET Foundation Code of Conduct](https://dotnetfoundation.org/code-of-conduct).
+```text
+BlazorBindings.Maui.sln
+src/
+    BlazorBindings.Brutalist/
+        Core rendering runtime, Yoga integration, app builder, hosting services
+    BlazorBindings.Brutalist.Material/
+        Material-inspired components, theme utilities, typography
+    BlazorBindings.Brutalist.Phosphor/
+        Icon pack integration
+    BlazorBindings.Core/
+        Shared infrastructure and abstractions
+samples/
+    Brutalist.CustomComponentsSample/
+        Main showcase app for controls, theming, routing, interactions
+    Brutalist.Sample/
+        Additional sample app
+    Brutalist.ImageRendererSample/
+        Rendering to image examples
+    Brutalist.ImageRendererWebSample/
+        Web-hosted rendering example
+```
 
-Thank you!
+## Typical workflow
 
- [1]: https://dotnet.microsoft.com/download/dotnet-core/3.1
+1. Build or update components in src/BlazorBindings.Brutalist.Material
+2. Validate behavior quickly in samples/Brutalist.CustomComponentsSample
+3. Add focused examples in sample pages for new capabilities
+4. Keep runtime and component packages aligned through the solution build
+
+## Community
+
+- NuGet package: https://www.nuget.org/packages/BlazorBindings.Maui/
+- Discord: https://discord.com/channels/732297728826277939/734865521400610856
+
+## Code of Conduct
+
+This project follows the Contributor Covenant and .NET Foundation code of conduct:
+
+https://dotnetfoundation.org/code-of-conduct

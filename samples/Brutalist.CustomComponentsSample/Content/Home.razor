@@ -1,0 +1,36 @@
+@page "/"
+@using Brutalist.Material.Typography
+
+<YogaScrollableView>
+    <YogaView Padding="24" Direction="Yoga.YGFlexDirection.YGFlexDirectionColumn" Gap="12" Grow="1">
+        <MaterialText FontSize="MaterialFontSize.HeadlineMedium" TextAlign="left">Project Summary</MaterialText>
+        <MaterialText FontSize="MaterialFontSize.BodyMedium" TextAlign="left" WrapText>
+            BlazorBindings.Maui brings Blazor-style component authoring to a high-performance native rendering stack.
+            Instead of targeting only HTML, this project maps component trees to Yoga for layout, renders with Skia,
+            and now uses Slint for application hosting and window integration.
+        </MaterialText>
+        <MaterialText FontSize="MaterialFontSize.BodyMedium" TextAlign="left" WrapText>
+            The goal is to make advanced UI composition feel familiar to Blazor developers while still delivering
+            pixel-precise rendering, smooth interaction, and portable runtime behavior across platforms.
+        </MaterialText>
+
+        <BrutalistCard BorderRadius="12" Padding="16" Gap="8">
+            <MaterialText FontSize="MaterialFontSize.TitleMedium" TextAlign="left">What this sample shows</MaterialText>
+            <MaterialText FontSize="MaterialFontSize.BodyMedium" TextAlign="left" WrapText>
+                • Material-inspired components built with Brutalist primitives
+            </MaterialText>
+            <MaterialText FontSize="MaterialFontSize.BodyMedium" TextAlign="left" WrapText>
+                • Client-side routing with reusable pages and composable view structures
+            </MaterialText>
+            <MaterialText FontSize="MaterialFontSize.BodyMedium" TextAlign="left" WrapText>
+                • Dynamic theme roles and typography driven by Material design tokens
+            </MaterialText>
+            <MaterialText FontSize="MaterialFontSize.BodyMedium" TextAlign="left" WrapText>
+                • Interactive controls, drag/drop, scrolling, and layered rendering behaviors
+            </MaterialText>
+            <MaterialText FontSize="MaterialFontSize.BodyMedium" TextAlign="left" WrapText>
+                • A modern runtime pipeline: Blazor components + Yoga layout + Skia rendering + Slint hosting
+            </MaterialText>
+        </BrutalistCard>
+        </YogaView>
+    </YogaScrollableView>

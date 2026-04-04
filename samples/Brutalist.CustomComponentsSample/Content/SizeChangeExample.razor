@@ -1,26 +1,31 @@
 @page "/size-change-example"
 @using BlazorBindings.Core
+@using Brutalist.Material.Typography
+@using MaterialColorUtilities.Schemes
 @implements IDisposable
 
 <YogaView Direction="Yoga.YGFlexDirection.YGFlexDirectionColumn" Gap="16" Padding="16">
-    <YogaText Text="Element OnSizeChange Example" FontSize="24" />
+    <MaterialText FontSize="MaterialFontSize.HeadlineSmall">Element OnSizeChange Example</MaterialText>
 
-    <YogaText
-    Text="This demo shows OnSizeChange in action. Click the button to toggle the width of the box below. The size changes are logged and displayed."
-    WrapText="true" />
+    <MaterialText WrapText="true">This demo shows OnSizeChange in action. Click the button to toggle the width of the
+        box below. The size changes are logged and displayed.</MaterialText>
 
-    <Button Label="Toggle Width" OnClick="ToggleWidth" />
+        <Button Label="Toggle Width" OnClick="ToggleWidth" />
 
-    <YogaView Background="#f0f0f0" BorderRadius="8" BorderWidth="1" BorderColor="#ccc" Width="@_boxWidth" Height="100f"
-              OnSizeChange="OnSizeChanged">
-        <YogaText Text="@_sizeText" CenterText="true" />
-    </YogaView>
+        <YogaView Background="#f0f0f0" BorderRadius="8" BorderWidth="1" BorderColor="#ccc" Width="@_boxWidth" Height="100f"
+                  OnSizeChange="OnSizeChanged">
+            <MaterialText Text="@_sizeText" CenterText="true" Color="@CurrentTheme?.OnBackground.ToHexColor()" />
+        </YogaView>
 
-    <YogaText Text="Size Change Log:" FontSize="16" />
-    <YogaText Text="@_logText" WrapText="true" />
-</YogaView>
+        <MaterialText Color="@CurrentTheme?.OnBackground.ToHexColor()" FontSize="MaterialFontSize.TitleMedium">Size Change
+            Log:</MaterialText>
+            <MaterialText Color="@CurrentTheme?.OnBackground.ToHexColor()" WrapText="true">@_logText</MaterialText>
+        </YogaView>
 
 @code {
+    [CascadingParameter]
+    public Scheme<uint>? CurrentTheme { get; set; }
+
     private float _boxWidth = 200;
     private string _sizeText = "Size: ?";
     private string _logText = "";

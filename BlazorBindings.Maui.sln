@@ -22,15 +22,15 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlazorBindings.Core", "src\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlazorBindings.Brutalist", "src\BlazorBindings.Brutalist\BlazorBindings.Brutalist.csproj", "{F581E145-4E43-47B1-9EB7-6D2DDB7B5DE9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BrutalisSample", "samples\Brutalis.Sample\BrutalisSample.csproj", "{EDA88675-A3CB-4D88-A33C-D60649A3748F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BrutalistSample", "samples\Brutalist.Sample\BrutalistSample.csproj", "{EDA88675-A3CB-4D88-A33C-D60649A3748F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Brutalis.ImageRendererSample", "samples\Brutalis.ImageRendererSample\Brutalis.ImageRendererSample.csproj", "{FA53D677-9B2F-4DAA-AECA-118CB0EF47C8}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Brutalist.ImageRendererSample", "samples\Brutalist.ImageRendererSample\Brutalist.ImageRendererSample.csproj", "{FA53D677-9B2F-4DAA-AECA-118CB0EF47C8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Brutalis.ImageRendererWebSample", "samples\Brutalis.ImageRendererWebSample\Brutalis.ImageRendererWebSample.csproj", "{C7DF823E-DB6D-4FD0-B8D3-B0F75D7D9156}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Brutalist.ImageRendererWebSample", "samples\Brutalist.ImageRendererWebSample\Brutalist.ImageRendererWebSample.csproj", "{C7DF823E-DB6D-4FD0-B8D3-B0F75D7D9156}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlazorBindings.Brutalist.Material", "src\BlazorBindings.Brutalist.Material\BlazorBindings.Brutalist.Material.csproj", "{2F38F3A3-E47A-4F00-9BE3-2D580869519D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Brutalis.CustomComponentsSample", "samples\Brutalis.CustomComponentsSample\Brutalis.CustomComponentsSample.csproj", "{0E04E6C6-590E-40D6-92F3-C99B235B865F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Brutalist.CustomComponentsSample", "samples\Brutalist.CustomComponentsSample\Brutalist.CustomComponentsSample.csproj", "{0E04E6C6-590E-40D6-92F3-C99B235B865F}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlazorBindings.Brutalist.Phosphor", "src\BlazorBindings.Brutalist.Phosphor\BlazorBindings.Brutalist.Phosphor.csproj", "{C15AD4D1-E714-41DF-8ED5-3882FC6DE339}"
 EndProject

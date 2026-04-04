@@ -1,15 +1,17 @@
 @page "/calendar"
 
 @using System.Globalization
+@using Brutalist.Material.Typography
 @using MaterialColorUtilities.Schemes
 
 <YogaView Grow="1" Direction="Yoga.YGFlexDirection.YGFlexDirectionColumn" Gap="12" JustifyContent="stretch"
           AlignItems="stretch" Padding="16">
     <YogaView Shrink="0" Direction="Yoga.YGFlexDirection.YGFlexDirectionRow" JustifyContent="space-between"
               AlignItems="center" Gap="8">
-        <YogaText FontSize="28" Color="@CurrentTheme.OnBackground.ToHexColor()" TextAlign="left">
+        <MaterialText FontSize="MaterialFontSize.HeadlineSmall" Color="@CurrentTheme.OnBackground.ToHexColor()"
+                      TextAlign="left">
             @MonthTitle
-        </YogaText>
+        </MaterialText>
         <YogaView Direction="Yoga.YGFlexDirection.YGFlexDirectionRow" Gap="8">
             <Button HeadIcon="@PhosphorIcons.CaretLeft" Label="Prev" Variant="Text" OnClick="@GoToPreviousMonth" />
             <Button TailIcon="@PhosphorIcons.CaretRight" Label="Next" Variant="Text" OnClick="@GoToNextMonth" />
@@ -30,7 +32,8 @@
                         <YogaView AspectRatio="1" Grow="0" Shrink="0" Padding="10" Background="@GetDayBackground(day)"
                                   BorderWidth="1" BorderColor="@GetDayBorder(day)" AlignItems="flex-start"
                                   JustifyContent="flex-start">
-                            <YogaText FontSize="14" Color="@GetDayColor(day)">@day.Date.Day</YogaText>
+                            <MaterialText FontSize="MaterialFontSize.BodyMedium" Color="@GetDayColor(day)">@day.Date.Day
+                            </MaterialText>
                         </YogaView>
                     }
                 </YogaView>

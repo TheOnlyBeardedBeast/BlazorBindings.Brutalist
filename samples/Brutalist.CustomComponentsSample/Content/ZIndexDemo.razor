@@ -1,13 +1,14 @@
 @page "/zindex"
+@using Brutalist.Material.Typography
 
 <YogaView Direction="Yoga.YGFlexDirection.YGFlexDirectionColumn" Gap="16" AlignItems="stretch" Position="relative"
           MinHeight="700">
     <YogaView Gap="8" Shrink="0">
-        <YogaText FontSize="28" TextAlign="left">ZIndex Demo</YogaText>
-        <YogaText FontSize="14" TextAlign="left" WrapText>
+        <MaterialText FontSize="MaterialFontSize.HeadlineMedium" TextAlign="left">ZIndex Demo</MaterialText>
+        <MaterialText FontSize="MaterialFontSize.BodyMedium" TextAlign="left" WrapText>
             This page demonstrates layered rendering and interaction. Open the popup, menu, and modal to verify
             that higher ZIndex values render above other content and capture input first.
-        </YogaText>
+        </MaterialText>
     </YogaView>
 
     <YogaView Overflow="visible" Direction="Yoga.YGFlexDirection.YGFlexDirectionRow" Gap="8" Wrap="wrap" Shrink="0">
@@ -18,7 +19,7 @@
             {
                 <YogaView Position="absolute" Top="56" Width="220" Padding="8" Gap="4" BorderRadius="10" BorderWidth="1"
                           BorderColor="#93c5fd" Background="#dbeafe" ZIndex="40">
-                    <YogaText FontSize="14" TextAlign="left">Menu Layer (Z=40)</YogaText>
+                    <MaterialText FontSize="MaterialFontSize.BodyMedium" TextAlign="left">Menu Layer (Z=40)</MaterialText>
                     <Button Label="Menu Item 1" Size="S" Variant="Text" OnClick='@(() => SelectItem("Item 1"))' />
                     <Button Label="Menu Item 2" Size="S" Variant="Text" OnClick='@(() => SelectItem("Item 2"))' />
                     <Button Label="Menu Item 3" Size="S" Variant="Text" OnClick='@(() => SelectItem("Item 3"))' />
@@ -30,26 +31,27 @@
 
     <YogaView Background="#f4f4f5" BorderRadius="12" BorderColor="#d4d4d8" BorderWidth="1" Padding="16" Gap="8"
               MinHeight="420" Position="relative">
-        <YogaText FontSize="16" TextAlign="left">Base content layer (Z=0)</YogaText>
-        <YogaText FontSize="13" TextAlign="left" WrapText>
+        <MaterialText FontSize="MaterialFontSize.TitleMedium" TextAlign="left">Base content layer (Z=0)</MaterialText>
+        <MaterialText FontSize="MaterialFontSize.LabelMedium" TextAlign="left" WrapText>
             Interact with the controls above. Overlays are absolutely positioned and can be rendered anywhere while
             staying on top via ZIndex.
-        </YogaText>
+        </MaterialText>
 
         <YogaView Direction="Yoga.YGFlexDirection.YGFlexDirectionRow" Gap="8" Wrap="wrap" Overflow="visible">
             <Button Label="Background Action A" Variant="Outlined" OnClick="IncBackground" />
             <Button Label="Background Action B" Variant="Outlined" OnClick="IncBackground" />
-            <YogaText FontSize="13" TextAlign="left">Background clicks: @_backgroundClicks</YogaText>
+            <MaterialText FontSize="MaterialFontSize.LabelMedium" TextAlign="left">Background clicks: @_backgroundClicks
+            </MaterialText>
         </YogaView>
 
         @if (_showPopup)
         {
             <YogaView Position="absolute" Top="120" Left="24" Width="320" Padding="12" Gap="8" BorderRadius="12"
                       BorderWidth="1" BorderColor="#a78bfa" Background="#ede9fe" ZIndex="30">
-                <YogaText FontSize="15" TextAlign="left">Popup Layer (Z=30)</YogaText>
-                <YogaText FontSize="13" TextAlign="left" WrapText>
+                <MaterialText FontSize="MaterialFontSize.TitleSmall" TextAlign="left">Popup Layer (Z=30)</MaterialText>
+                <MaterialText FontSize="MaterialFontSize.LabelMedium" TextAlign="left" WrapText>
                     This popup is rendered above base content.
-                </YogaText>
+                </MaterialText>
                 <Button Label="Close Popup" Size="S" OnClick="TogglePopup" />
             </YogaView>
         }
@@ -60,10 +62,10 @@
                       JustifyContent="center" AlignItems="center" ZIndex="100">
                 <YogaView Width="420" Background="#ffffff" BorderRadius="16" BorderWidth="1" BorderColor="#d1d5db"
                           Padding="16" Gap="12">
-                    <YogaText FontSize="22" TextAlign="left">Modal Layer (Z=100)</YogaText>
-                    <YogaText FontSize="14" TextAlign="left" WrapText>
+                    <MaterialText FontSize="MaterialFontSize.TitleLarge" TextAlign="left">Modal Layer (Z=100)</MaterialText>
+                    <MaterialText FontSize="MaterialFontSize.BodyMedium" TextAlign="left" WrapText>
                         This is rendered above popup/menu and blocks interaction beneath it.
-                    </YogaText>
+                    </MaterialText>
                     <YogaView Direction="Yoga.YGFlexDirection.YGFlexDirectionRow" JustifyContent="flex-end" Gap="8">
                         <Button Label="Close" OnClick="ToggleModal" />
                     </YogaView>
@@ -75,7 +77,8 @@
 
         <YogaView ZIndex="101" Position="absolute" Bottom="16" Left="16" Right="16" Background="#ffffff"
                   BorderRadius="10" BorderWidth="1" BorderColor="#e5e7eb" Padding="10">
-            <YogaText FontSize="13" TextAlign="left">Selected menu item: @_selectedItem</YogaText>
+            <MaterialText FontSize="MaterialFontSize.LabelMedium" TextAlign="left">Selected menu item: @_selectedItem
+            </MaterialText>
         </YogaView>
     </YogaView>
 

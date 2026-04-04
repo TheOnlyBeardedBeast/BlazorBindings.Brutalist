@@ -6,9 +6,10 @@
 @using BlazorBindings.Brutalist.Material.Typography
 
 
-<YogaText Shrink="0" FontSize="28" Color="@CurrentTheme?.OnBackground.ToHexColor()" TextAlign="left">
+<MaterialText Shrink="0" FontSize="MaterialFontSize.HeadlineMedium" Color="@CurrentTheme?.OnBackground.ToHexColor()"
+              TextAlign="left">
     Typography
-</YogaText>
+</MaterialText>
 
 @foreach (MaterialFontSize size in
         Enum.GetValues(typeof(MaterialFontSize)).Cast<MaterialFontSize>().OrderByDescending(s =>

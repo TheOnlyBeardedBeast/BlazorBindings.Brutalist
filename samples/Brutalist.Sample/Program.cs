@@ -2,7 +2,7 @@
 using BlazorBindings.Brutalist.Elements;
 using BlazorBindings.Brutalist.Elements.Handlers;
 using BlazorBindings.Core;
-using BrutalisSample;
+using BrutalistSample;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
 using System.Runtime.CompilerServices;

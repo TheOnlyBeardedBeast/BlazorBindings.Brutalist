@@ -1,0 +1,140 @@
+@using BlazorBindings.Brutalist.Phosphor
+@using Brutalist.CustomComponentsSample.Side
+@using Brutalist.Material.Typography
+@using MaterialColorUtilities.Schemes
+@using MaterialColorUtilities.Palettes
+@using Microsoft.AspNetCore.Components.Routing
+@inherits NavigationAwareComponentBase
+
+<YogaWindow Width="@width" Height="@height" Direction="Yoga.YGFlexDirection.YGFlexDirectionRow"
+            Background="@CurrentTheme.Background.ToHexColor()" AlignItems="stretch" Position="relative">
+    <SideNav />
+    <YogaScrollableView Padding="24" Grow="1" Gap="16">
+        <YogaView Padding="8 12" Shrink="0">
+            <MaterialText FontSize="MaterialFontSize.BodySmall" Color="@CurrentTheme.OnSurfaceVariant.ToHexColor()">URI:
+                @Navigation.Uri</MaterialText>
+                <Button Label="Resize window" OnClick="@resize" />
+            </YogaView>
+            <Router AppAssembly="@typeof(AppContent).Assembly">
+                <Found Context="routeData">
+                    <RouteView RouteData="@routeData" />
+                </Found>
+                <NotFound>
+                    <YogaWindow Background="#ffffff" Padding="40" Direction="Yoga.YGFlexDirection.YGFlexDirectionColumn"
+                                Gap="8">
+                        <MaterialText FontSize="MaterialFontSize.HeadlineMedium" Color="#111827" TextAlign="left">404
+                        </MaterialText>
+                        <MaterialText FontSize="MaterialFontSize.BodyLarge" Color="#6b7280" TextAlign="left">Route not
+                            found.</MaterialText>
+                        </YogaWindow>
+                    </NotFound>
+                </Router>
+            </YogaScrollableView>
+
+            @* Modal *@
+            @if (IsModalOpen)
+            {
+                <YogaView Position="absolute" Top="0" Left="0" Right="0" Bottom="0" Background="#000000aa" JustifyContent="center"
+                          AlignItems="center">
+                    <YogaView Background="@CurrentTheme.Surface1.ToHexColor()" BorderRadius="28" Padding="24" Gap="16" Width="400"
+                              MaxHeight="600">
+                        <MaterialText FontSize="MaterialFontSize.HeadlineSmall" Color="@CurrentTheme.OnSurface.ToHexColor()">
+                            Modal Dialog
+                        </MaterialText>
+                        <MaterialText FontSize="MaterialFontSize.BodyMedium" Color="@CurrentTheme.OnSurfaceVariant.ToHexColor()"
+                                      TextAlign="left" WrapText>
+                            This is a modal positioned absolutely at the bottom of the component.
+                        </MaterialText>
+                        <YogaView Direction="Yoga.YGFlexDirection.YGFlexDirectionRow" Gap="8" JustifyContent="flex-end">
+                            @* <Button Label="Cancel" OnClick="CloseModal" Variant="Text" />
+                    <Button Label="Confirm" OnClick="CloseModal" /> *@
+                        </YogaView>
+                    </YogaView>
+                </YogaView>
+            }
+            <YogaView Position="absolute" Bottom="16" Right="16" Overflow="visible">
+                <Button
+                HeadIcon="@(CurrentTheme.Background < CurrentTheme.OnBackground ? @PhosphorIcons.Sun : @PhosphorIcons.Moon)"
+                OnClick="@(CurrentTheme.Background < CurrentTheme.OnBackground ? UseLightTheme : UseDarkTheme)" />
+            </YogaView>
+        </YogaWindow>
+
+@code
+{
+    private int width = 1200;
+    private int height = 600;
+
+    private void resize()
+    {
+        var rand = new Random();
+        width = rand.Next(800, 1400);
+        height = rand.Next(500, 900);
+    }
+    [Parameter]
+    public EventCallback UseDarkTheme { get; set; }
+
+    [Parameter]
+    public EventCallback UseLightTheme { get; set; }
+
+    private int Count;
+    private bool IsModalOpen = false;
+
+    private bool LoaderAnimated = true;
+    private float LoaderSpeed = 1.6f;
+    private float LoaderAmplitude = 8f;
+    private bool AcceptedTerms;
+    private bool EnableAnalytics = true;
+    private string? SelectedFramework = "Blazor";
+    private static readonly string[] FrameworkOptions = ["Blazor", "MAUI", "Skia", "OpenTK", "Yoga"];
+
+
+
+
+    [CascadingParameter]
+    public Scheme<uint> CurrentTheme { get; set; }
+
+
+
+
+
+    private void ToggleLoaderAnimation()
+    {
+        LoaderAnimated = !LoaderAnimated;
+        StateHasChanged();
+    }
+
+    private void IncreaseLoaderSpeed()
+    {
+        LoaderSpeed = Math.Min(4f, LoaderSpeed + 0.2f);
+        StateHasChanged();
+    }
+
+    private void DecreaseLoaderSpeed()
+    {
+        LoaderSpeed = Math.Max(0.2f, LoaderSpeed - 0.2f);
+        StateHasChanged();
+    }
+
+    private void IncreaseLoaderAmplitude()
+    {
+        LoaderAmplitude = Math.Min(16f, LoaderAmplitude + 1f);
+        StateHasChanged();
+    }
+
+    private void DecreaseLoaderAmplitude()
+    {
+        LoaderAmplitude = Math.Max(2f, LoaderAmplitude - 1f);
+        StateHasChanged();
+    }
+
+    private Task OnFrameworkChanged(string? value)
+    {
+        SelectedFramework = value;
+        return Task.CompletedTask;
+    }
+
+    protected override void OnLocationChanged(LocationChangedEventArgs args)
+    {
+        IsModalOpen = false;
+    }
+}

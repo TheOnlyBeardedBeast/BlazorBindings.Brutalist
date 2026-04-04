@@ -1,20 +1,22 @@
 @page "/textfields"
+@using Brutalist.Material.Typography
 @using MaterialColorUtilities.Schemes
 @using BlazorBindings.Brutalist.Material.Input
 
 
-<YogaText Shrink="0" FontSize="28" Color="@CurrentTheme.OnBackground.ToHexColor()" TextAlign="left">
+<MaterialText Shrink="0" FontSize="MaterialFontSize.HeadlineMedium" Color="@CurrentTheme.OnBackground.ToHexColor()"
+              TextAlign="left">
     Text Field
-</YogaText>
+</MaterialText>
 
 
 <BrutalistCard BorderRadius="12" Padding="16" Gap="12">
     <TextField Label="Name" Placeholder="Enter your name" ValueChanged="@OnNameInput" />
-    <YogaText Color="@CurrentTheme?.OnBackground.ToHexColor()">Name Value: @name</YogaText>
+    <MaterialText Color="@CurrentTheme?.OnBackground.ToHexColor()">Name Value: @name</MaterialText>
     <TextField Label="Email" Placeholder="Enter your email" />
     <TextField Label="Message" Placeholder="Enter your message" />
     <TextField Label="Password" Placeholder="Enter your password" ValueChanged="@OnPasswordInput" IsPassword />
-    <YogaText Color="@CurrentTheme?.OnBackground.ToHexColor()">Password Value: @password</YogaText>
+    <MaterialText Color="@CurrentTheme?.OnBackground.ToHexColor()">Password Value: @password</MaterialText>
 </BrutalistCard>
 @code {
     [CascadingParameter]

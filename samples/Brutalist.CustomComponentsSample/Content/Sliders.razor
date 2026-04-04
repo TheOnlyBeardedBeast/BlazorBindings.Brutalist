@@ -1,0 +1,100 @@
+@page "/sliders"
+@using Brutalist.Material.Typography
+@using MaterialColorUtilities.Schemes
+
+<YogaView Shrink="0">
+    <MaterialText Shrink="0" FontSize="MaterialFontSize.HeadlineMedium" Color="@CurrentTheme.OnBackground.ToHexColor()"
+                  TextAlign="left">
+        Sliders
+    </MaterialText>
+    <MaterialText Shrink="0" FontSize="MaterialFontSize.BodyMedium" Color="@CurrentTheme.OnSurfaceVariant.ToHexColor()"
+                  TextAlign="left">
+        Material slider examples with click-and-drag input, two-way binding, step sizes, tones, and disabled states.
+    </MaterialText>
+</YogaView>
+
+<YogaView Direction="Yoga.YGFlexDirection.YGFlexDirectionColumn" Gap="16" AlignItems="stretch">
+    <BrutalistCard BorderRadius="12" Padding="16" Gap="12">
+        <MaterialText FontSize="MaterialFontSize.TitleMedium" Color="@CurrentTheme.OnBackground.ToHexColor()"
+                      TextAlign="left">
+            Basic
+        </MaterialText>
+        <MaterialText FontSize="MaterialFontSize.BodySmall" Color="@CurrentTheme.OnSurfaceVariant.ToHexColor()"
+                      TextAlign="left">
+            Default range from 0 to 100 with step 1. Click or drag across the track.
+        </MaterialText>
+
+        <Slider Label="Volume" @bind-Value="Volume" />
+
+        <MaterialText FontSize="MaterialFontSize.BodySmall" Color="@CurrentTheme.OnSurfaceVariant.ToHexColor()"
+                      TextAlign="left">
+            Volume: @Volume
+        </MaterialText>
+    </BrutalistCard>
+
+    <BrutalistCard BorderRadius="12" Padding="16" Gap="12">
+        <MaterialText FontSize="MaterialFontSize.TitleMedium" Color="@CurrentTheme.OnBackground.ToHexColor()"
+                      TextAlign="left">
+            Unsegmented
+        </MaterialText>
+        <MaterialText FontSize="MaterialFontSize.BodySmall" Color="@CurrentTheme.OnSurfaceVariant.ToHexColor()"
+                      TextAlign="left">
+            Default range from 0 to 100 with step 1. Click or drag across the track.
+        </MaterialText>
+
+        <Slider ShowDragHandle="true" Label="Volume" @bind-Value="Volume" Segmented="false" />
+
+        <MaterialText FontSize="MaterialFontSize.BodySmall" Color="@CurrentTheme.OnSurfaceVariant.ToHexColor()"
+                      TextAlign="left">
+            Volume: @Volume
+        </MaterialText>
+    </BrutalistCard>
+
+    <BrutalistCard BorderRadius="12" Padding="16" Gap="12">
+        <MaterialText FontSize="MaterialFontSize.TitleMedium" Color="@CurrentTheme.OnBackground.ToHexColor()"
+                      TextAlign="left">
+            Decimal Step
+        </MaterialText>
+        <MaterialText FontSize="MaterialFontSize.BodySmall" Color="@CurrentTheme.OnSurfaceVariant.ToHexColor()"
+                      TextAlign="left">
+            Supports decimal ranges and step quantization.
+        </MaterialText>
+
+        <Slider Label="Playback speed" Min="0.5" Max="2.0" Step="0.1" @bind-Value="PlaybackSpeed" />
+
+        <MaterialText FontSize="MaterialFontSize.BodySmall" Color="@CurrentTheme.OnSurfaceVariant.ToHexColor()"
+                      TextAlign="left">
+            Playback speed: @PlaybackSpeed.ToString("0.0")x
+        </MaterialText>
+    </BrutalistCard>
+
+    <BrutalistCard BorderRadius="12" Padding="16" Gap="12">
+        <MaterialText FontSize="MaterialFontSize.TitleMedium" Color="@CurrentTheme.OnBackground.ToHexColor()"
+                      TextAlign="left">
+            Tone and Disabled
+        </MaterialText>
+        <MaterialText FontSize="MaterialFontSize.BodySmall" Color="@CurrentTheme.OnSurfaceVariant.ToHexColor()"
+                      TextAlign="left">
+            Tone selects color roles. Disabled slider does not change value.
+        </MaterialText>
+
+        <Slider Label="Primary" Min="0" Max="10" Step="1" Tone="Primary" @bind-Value="PrimaryValue" />
+        <Slider Label="Secondary" Min="0" Max="10" Step="1" Tone="Secondary" @bind-Value="SecondaryValue" />
+        <Slider Label="Disabled" Min="0" Max="10" Step="1" Value="6" Disabled="true" />
+
+        <MaterialText FontSize="MaterialFontSize.BodySmall" Color="@CurrentTheme.OnSurfaceVariant.ToHexColor()"
+                      TextAlign="left">
+            Primary: @PrimaryValue · Secondary: @SecondaryValue
+        </MaterialText>
+    </BrutalistCard>
+</YogaView>
+
+@code {
+    [CascadingParameter]
+    public Scheme<uint> CurrentTheme { get; set; } = default!;
+
+    private double Volume = 35;
+    private double PlaybackSpeed = 1.0;
+    private double PrimaryValue = 4;
+    private double SecondaryValue = 7;
+}

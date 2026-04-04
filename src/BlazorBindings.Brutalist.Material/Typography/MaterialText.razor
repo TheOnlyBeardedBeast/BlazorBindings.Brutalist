@@ -1,7 +1,8 @@
 @using MaterialColorUtilities.Schemes
 @using global::Brutalist.Material.Typography
 
-<YogaText Ellipse="@Ellipse" FontSize="@resolvedFontSize" TextAlign="@TextAlign" Color="@resolvedColor">
+<YogaText WrapText="@WrapText" Ellipse="@Ellipse" FontSize="@resolvedFontSize" TextAlign="@TextAlign"
+          Color="@resolvedColor">
     @ChildContent
 </YogaText>
 
@@ -26,4 +27,7 @@
 
     [Parameter]
     public bool Ellipse { get; set; }
+
+    [Parameter]
+    public bool WrapText { get; set; }
 }

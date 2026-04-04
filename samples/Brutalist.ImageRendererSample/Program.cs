@@ -1,5 +1,5 @@
 using BlazorBindings.Brutalist;
-using Brutalis.ImageRendererSample;
+using Brutalist.ImageRendererSample;
 using Microsoft.Extensions.DependencyInjection;
 using SkiaSharp;
 

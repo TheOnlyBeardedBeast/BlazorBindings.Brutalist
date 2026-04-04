@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Routing;
 
-namespace Brutalis.CustomComponentsSample;
+namespace Brutalist.CustomComponentsSample;
 
 public abstract class NavigationAwareComponentBase : ComponentBase, IDisposable
 {

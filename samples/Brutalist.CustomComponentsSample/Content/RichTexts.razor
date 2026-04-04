@@ -1,21 +1,26 @@
+@using Brutalist.Material.Typography
 @using MaterialColorUtilities.Schemes
 @page "/richtexts"
 
-<YogaText Shrink="0" FontSize="28" Color="@CurrentTheme.OnBackground.ToHexColor()" TextAlign="left">
+<MaterialText Shrink="0" FontSize="MaterialFontSize.HeadlineMedium" Color="@CurrentTheme.OnBackground.ToHexColor()"
+              TextAlign="left">
     Button
-</YogaText>
+</MaterialText>
 
 <BrutalistCard BorderRadius="12" Padding="16" Gap="12">
-    <YogaText FontSize="18" Color="@CurrentTheme.OnBackground.ToHexColor()" TextAlign="left">
+    <MaterialText FontSize="MaterialFontSize.TitleMedium" Color="@CurrentTheme.OnBackground.ToHexColor()"
+                  TextAlign="left">
         RichText
-    </YogaText>
-    <YogaText FontSize="12" Color="@CurrentTheme.OnSurfaceVariant.ToHexColor()" TextAlign="left">
+    </MaterialText>
+    <MaterialText FontSize="MaterialFontSize.BodySmall" Color="@CurrentTheme.OnSurfaceVariant.ToHexColor()"
+                  TextAlign="left">
         Renders markdown-like content with headings, quotes, lists, and clickable links.
-    </YogaText>
+    </MaterialText>
     <RichText Text="@RichTextSample" OnLinkClick="HandleRichTextLinkClick" BoldScale="1.25f" />
-    <YogaText FontSize="12" Color="@CurrentTheme.OnSurfaceVariant.ToHexColor()" TextAlign="left" WrapText>
+    <MaterialText FontSize="MaterialFontSize.BodySmall" Color="@CurrentTheme.OnSurfaceVariant.ToHexColor()"
+                  TextAlign="left" WrapText>
         Last clicked link: @LastClickedLink
-    </YogaText>
+    </MaterialText>
 </BrutalistCard>
 
 @code {

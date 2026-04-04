@@ -1,5 +1,5 @@
 using BlazorBindings.Brutalist;
-using Brutalis.CustomComponentsSample;
+using Brutalist.CustomComponentsSample;
 using Microsoft.Extensions.DependencyInjection;
 
 var builder = new BrutalistAppBuilder();

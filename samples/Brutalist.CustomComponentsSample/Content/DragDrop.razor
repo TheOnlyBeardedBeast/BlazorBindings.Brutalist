@@ -1,23 +1,27 @@
 @page "/drag-drop"
+@using Brutalist.Material.Typography
 @using MaterialColorUtilities.Schemes
 
 <YogaView Direction="Yoga.YGFlexDirection.YGFlexDirectionColumn" Gap="16" AlignItems="stretch" Shrink="0">
-    <YogaText Shrink="0" FontSize="28" Color="@CurrentTheme.OnBackground.ToHexColor()" TextAlign="left">
+    <MaterialText Shrink="0" FontSize="MaterialFontSize.HeadlineMedium" Color="@CurrentTheme.OnBackground.ToHexColor()"
+                  TextAlign="left">
         Drag & Drop (Minimal)
-    </YogaText>
+    </MaterialText>
 
-    <YogaText Shrink="0" FontSize="14" Color="@CurrentTheme.OnSurfaceVariant.ToHexColor()" TextAlign="left" WrapText>
+    <MaterialText Shrink="0" FontSize="MaterialFontSize.BodyMedium" Color="@CurrentTheme.OnSurfaceVariant.ToHexColor()"
+                  TextAlign="left" WrapText>
         Drag the tile into the drop zone. @_tileData.Name
-    </YogaText>
+    </MaterialText>
 
     <YogaView Direction="Yoga.YGFlexDirection.YGFlexDirectionRow" Gap="16" AlignItems="flex-start" Shrink="0">
         <YogaDragDropView EnableDrag="true" DragType="tile" Scope="minimal" OnDragPreviewChanged="OnDragPreviewChanged"
                           OnDragCompleted="OnDragCompleted" DragPreviewBorderRadius="10" Shrink="0" DragData="@_tileData">
             <YogaView Width="220" Height="80" Background="@CurrentTheme.PrimaryContainer.ToHexColor()" BorderRadius="10"
                       Padding="12" JustifyContent="center" Shrink="0">
-                <YogaText FontSize="14" Color="@CurrentTheme.OnPrimaryContainer.ToHexColor()" TextAlign="left">
+                <MaterialText FontSize="MaterialFontSize.BodyMedium"
+                              Color="@CurrentTheme.OnPrimaryContainer.ToHexColor()" TextAlign="left">
                     @_tileData.Name
-                </YogaText>
+                </MaterialText>
             </YogaView>
         </YogaDragDropView>
 
@@ -25,16 +29,18 @@
                           OnDrop="OnDrop" OnCanDrop="@CanAcceptTile" Shrink="0">
             <YogaView Width="260" Height="140" BorderRadius="10" BorderWidth="2" Padding="12"
                       Background="@DropZoneBackground" BorderColor="@DropZoneBorder" JustifyContent="center" Shrink="0">
-                <YogaText FontSize="14" Color="@CurrentTheme.OnSurface.ToHexColor()" TextAlign="left">
+                <MaterialText FontSize="MaterialFontSize.BodyMedium" Color="@CurrentTheme.OnSurface.ToHexColor()"
+                              TextAlign="left">
                     Drop Zone
-                </YogaText>
+                </MaterialText>
             </YogaView>
         </YogaDragDropView>
     </YogaView>
 
-    <YogaText FontSize="12" Color="@CurrentTheme.OnSurfaceVariant.ToHexColor()" TextAlign="left" WrapText>
+    <MaterialText FontSize="MaterialFontSize.BodySmall" Color="@CurrentTheme.OnSurfaceVariant.ToHexColor()"
+                  TextAlign="left" WrapText>
         @StatusText
-    </YogaText>
+    </MaterialText>
 </YogaView>
 
 @code {
