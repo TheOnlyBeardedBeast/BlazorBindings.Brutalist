@@ -626,7 +626,6 @@ public class YogaTextInput : YogaView, IDisposable
 
     protected void SetValue(string value)
     {
-        Console.WriteLine($"Setting value: '{value}'");
         if (_currentValue == value)
         {
             return;

@@ -145,7 +145,6 @@ public unsafe class Element : NativeControlComponentBase
 
     protected Element() : base()
     {
-        // Console.WriteLine("View created");
         var handle = GCHandle.Alloc(this);
         YG.NodeSetContext(Node, (void*)GCHandle.ToIntPtr(handle));
         // Use web-like default behavior so flex items can shrink when space is constrained.
@@ -359,20 +358,16 @@ public unsafe class Element : NativeControlComponentBase
 
     public void Test()
     {
-        Console.WriteLine("TEST");
     }
 
 
     public virtual void Render()
     {
         // Debug.WriteLine("View Rendered");
-        Console.WriteLine($"[Element.Render] {Id ?? "UnknownId"} - Rendering Yoga layout");
         YG.NodeCalculateLayout(Node, YG.YGUndefined, YG.YGUndefined, YGDirection.YGDirectionLTR);
 
-        // Console.WriteLine($"Left={YG.NodeLayoutGetLeft(Node)},Top={YG.NodeLayoutGetTop(Node)},Width={YG.NodeLayoutGetWidth(Node)},Height={YG.NodeLayoutGetHeight(Node)}");
 
         // var childCount = YG.NodeGetChildCount(Node);
-        // Console.WriteLine(childCount);
         // for (nuint i = 0; i < childCount; i++)
         // {
         //     var child = YG.NodeGetChild(Node, i);
@@ -474,7 +469,6 @@ public unsafe class Element : NativeControlComponentBase
             }
         }
 
-        // Console.WriteLine($"Left={YG.NodeLayoutGetLeft(Node)},Top={YG.NodeLayoutGetTop(Node)},Width={YG.NodeLayoutGetWidth(Node)},Height={YG.NodeLayoutGetHeight(Node)}");
 
         if (Background is not null)
         {

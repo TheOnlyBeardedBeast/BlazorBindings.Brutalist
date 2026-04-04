@@ -11,12 +11,10 @@ public class BrutalistAppBuilder
 
     public BrutalistAppBuilder AddCoreServices()
     {
-        Console.WriteLine("[BrutalistAppBuilder] Adding core services...");
         Console.Out.Flush();
 
         // Create Sdl3Service which will create the GPU-backed surface
         var sdl3Service = new Sdl3Service();
-        Console.WriteLine("[BrutalistAppBuilder] Sdl3Service created");
         Console.Out.Flush();
 
         Services.AddSingleton(sdl3Service);
@@ -24,14 +22,12 @@ public class BrutalistAppBuilder
 
         AddSharedCoreServices();
 
-        Console.WriteLine("[BrutalistAppBuilder] Core services added");
         Console.Out.Flush();
         return this;
     }
 
     public BrutalistAppBuilder AddCoreServicesWithoutOpenTk(int width = 800, int height = 600, float dpiScale = 1f)
     {
-        Console.WriteLine("[BrutalistAppBuilder] Adding headless core services...");
         Console.Out.Flush();
 
         var imageRenderService = new ImageRenderService(width, height, dpiScale);
@@ -40,18 +36,15 @@ public class BrutalistAppBuilder
 
         AddSharedCoreServices();
 
-        Console.WriteLine("[BrutalistAppBuilder] Headless core services added");
         Console.Out.Flush();
         return this;
     }
 
     public BrutalistAppBuilder AddCoreServicesWithSilk()
     {
-        Console.WriteLine("[BrutalistAppBuilder] Adding core services with Silk.NET...");
         Console.Out.Flush();
 
         var silkService = new SilkService();
-        Console.WriteLine("[BrutalistAppBuilder] SilkService created");
         Console.Out.Flush();
 
         Services.AddSingleton(silkService);
@@ -59,7 +52,6 @@ public class BrutalistAppBuilder
 
         AddSharedCoreServices();
 
-        Console.WriteLine("[BrutalistAppBuilder] Core services with Silk.NET added");
         Console.Out.Flush();
         return this;
     }

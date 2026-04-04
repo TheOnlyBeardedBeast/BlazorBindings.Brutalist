@@ -75,7 +75,6 @@ public sealed class SilkService : IBrutalistRenderSurface, IDisposable
 
     public SilkService(int width = 800, int height = 600, string title = "Blazor Silk.NET App")
     {
-        Console.WriteLine("[SilkService] Creating Silk.NET service...");
 
         var options = WindowOptions.Default with
         {
@@ -102,7 +101,6 @@ public sealed class SilkService : IBrutalistRenderSurface, IDisposable
         _framebufferHeight = Height;
         Surface = CreateSurface(Width, Height);
 
-        Console.WriteLine("[SilkService] Window created.");
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -111,7 +109,6 @@ public sealed class SilkService : IBrutalistRenderSurface, IDisposable
 
     public void Start()
     {
-        Console.WriteLine("[SilkService.Start] Starting...");
 
         if (OperatingSystem.IsMacOS())
         {
@@ -182,12 +179,10 @@ public sealed class SilkService : IBrutalistRenderSurface, IDisposable
                 using var data = image.Encode(SKEncodedImageFormat.Png, 80);
                 using var stream = System.IO.File.OpenWrite(filename);
                 data.SaveTo(stream);
-                Console.WriteLine($"[SilkService] Saved {filename}");
             }
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            Console.WriteLine($"[SilkService] SaveSurfaceToFile error: {ex.Message}");
         }
     }
 
@@ -197,7 +192,6 @@ public sealed class SilkService : IBrutalistRenderSurface, IDisposable
 
     private void OnLoad()
     {
-        Console.WriteLine("[SilkService.OnLoad] Initialising OpenGL...");
 
         _gl = GL.GetApi(_window);
         _input = _window.CreateInput();
@@ -220,7 +214,6 @@ public sealed class SilkService : IBrutalistRenderSurface, IDisposable
 
         InitGl();
 
-        Console.WriteLine($"[SilkService] Loaded. Logical {Width}x{Height}, Framebuffer {_framebufferWidth}x{_framebufferHeight}, Scale {DpiScaleX:0.##}x{DpiScaleY:0.##}");
     }
 
     private void OnResize(Vector2D<int> size)
@@ -464,7 +457,6 @@ public sealed class SilkService : IBrutalistRenderSurface, IDisposable
         CreateTexture();
         EnsureTextureStorage(_framebufferWidth, _framebufferHeight);
 
-        Console.WriteLine("[SilkService] OpenGL initialised.");
     }
 
     private unsafe void UploadSurfaceToTexture()
@@ -647,7 +639,6 @@ public sealed class SilkService : IBrutalistRenderSurface, IDisposable
         }
 
         _isDisposed = true;
-        Console.WriteLine("[SilkService] Disposing...");
 
         lock (_surfaceLock)
         {
@@ -673,6 +664,5 @@ public sealed class SilkService : IBrutalistRenderSurface, IDisposable
         _gl?.Dispose();
         _window?.Dispose();
 
-        Console.WriteLine("[SilkService] Disposed.");
     }
 }

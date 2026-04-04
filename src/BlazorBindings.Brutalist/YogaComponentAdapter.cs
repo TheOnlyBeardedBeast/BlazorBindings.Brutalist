@@ -57,7 +57,6 @@ internal sealed class YogaComponentAdapter(
         foreach (var edit in edits)
         {
 
-            Console.WriteLine(edit.Type);
             switch (edit.Type)
             {
                 case RenderTreeEditType.PrependFrame:
@@ -129,11 +128,9 @@ internal sealed class YogaComponentAdapter(
             }
             else if (edit.Type == EditType.Add)
             {
-                Console.WriteLine("Pending add child");
                 var parentName = (_targetElement as Element)?.Id
                     ?? _targetElement?.GetType().Name
                     ?? "<null-parent>";
-                Console.WriteLine("{0} -> {1} : {2}", parentName, edit.Element._targetElement, edit.Index);
 
                 if (edit.Index < 0)
                 {
@@ -295,7 +292,6 @@ internal sealed class YogaComponentAdapter(
                 }
             case RenderTreeFrameType.Markup:
                 {
-                    // Console.WriteLine("Markup - {0}", _targetElement);
                     if (!string.IsNullOrWhiteSpace(frame.MarkupContent))
                     {
                         if (_targetElement is IHandleChildContentText handleChildContentText)
@@ -330,7 +326,6 @@ internal sealed class YogaComponentAdapter(
                 }
             case RenderTreeFrameType.Attribute:
                 {
-                    Console.WriteLine("{0} - {1}", frame.AttributeName, frame.AttributeValue);
                     return 1;
                 }
             // case RenderTreeFrameType.Element:

@@ -31,13 +31,10 @@ public class YogaView : Element, IContainerElementHandler, IHandleChildContentTe
     public unsafe override void AddChild(object child, int physicalSiblingIndex)
     {
 
-        // Console.WriteLine((child as Element).Node != null);
 
         if (child != null && (child as Element).Node != null)
         {
 
-            // Console.WriteLine("Insert {0} to {1}", (child as Element).Id, this.Id);
-            // Console.WriteLine(physicalSiblingIndex);
             nuint placeToInsert = (nuint)physicalSiblingIndex <= YG.NodeGetChildCount(Node) ? (nuint)physicalSiblingIndex : YG.NodeGetChildCount(Node);
             YG.NodeInsertChild(this.Node, (child as Element).Node, placeToInsert);
             // Node.Insert(physicalSiblingIndex, (child as Element).Node);
@@ -61,8 +58,6 @@ public class YogaView : Element, IContainerElementHandler, IHandleChildContentTe
     protected override RenderFragment GetChildContent() => ChildContent;
     // protected unsafe override RenderFragment GetChildContent() => builder =>
     // {
-    //     Console.WriteLine("GetChildContent");
-    //     Console.WriteLine(ChildContent);
     //     int seq = 0;
     //     for (nuint i = 0; i < YG.NodeGetChildCount(Node); i++)
     //     {
@@ -87,7 +82,6 @@ public class YogaView : Element, IContainerElementHandler, IHandleChildContentTe
 
     public void HandleText(int index, string text)
     {
-        // Console.WriteLine("HandleText");
         // Console.Write(text);
     }
 

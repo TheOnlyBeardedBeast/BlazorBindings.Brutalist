@@ -46,7 +46,6 @@ public sealed class OpentkService : IBrutalistRenderSurface, IDisposable
 
     public OpentkService(int width = 800, int height = 600, string title = "Blazor OpenTK App")
     {
-        Console.WriteLine("[OpentkService] Creating OpenTK service...");
         var gameSettings = new GameWindowSettings
         {
             UpdateFrequency = 60,
@@ -61,7 +60,6 @@ public sealed class OpentkService : IBrutalistRenderSurface, IDisposable
         };
 
         _window = new GameWindow(gameSettings, nativeSettings);
-        Console.WriteLine("[OpentkService] Window created");
 
         // Use client size for logical coordinates and framebuffer size for pixel backing.
         Width = Math.Max(1, _window.ClientSize.X);
@@ -71,11 +69,9 @@ public sealed class OpentkService : IBrutalistRenderSurface, IDisposable
         DpiScaleX = (float)_framebufferWidth / Width;
         DpiScaleY = (float)_framebufferHeight / Height;
 
-        Console.WriteLine($"[OpentkService] ClientSize: {_window.ClientSize.X}x{_window.ClientSize.Y}, FramebufferSize: {_framebufferWidth}x{_framebufferHeight}, Scale: {DpiScaleX:0.##}x{DpiScaleY:0.##}");
 
         // Backing surface is framebuffer-sized for crisp rendering.
         Surface = CreateSurface(_framebufferWidth, _framebufferHeight);
-        Console.WriteLine($"[OpentkService] Software surface created: {_framebufferWidth}x{_framebufferHeight}");
 
         _window.Load += OnLoad;
         _window.Resize += OnResize;
@@ -86,7 +82,6 @@ public sealed class OpentkService : IBrutalistRenderSurface, IDisposable
         _window.TextInput += OnTextInput;
         _window.KeyDown += OnKeyDown;
 
-        Console.WriteLine("[OpentkService] Event handlers attached");
     }
 
     private void OnMouseDown(MouseButtonEventArgs args)
@@ -201,15 +196,12 @@ public sealed class OpentkService : IBrutalistRenderSurface, IDisposable
 
     public void Start()
     {
-        Console.WriteLine("[OpentkService.Start] Starting window...");
         if (OperatingSystem.IsMacOS())
         {
-            Console.WriteLine("[OpentkService.Start] macOS detected - running on main thread");
             Run();
         }
         else
         {
-            Console.WriteLine("[OpentkService.Start] Non-macOS - creating render thread");
             _renderThread = new Thread(() => _window.Run()) { IsBackground = true };
             _renderThread.Start();
         }
@@ -230,7 +222,6 @@ public sealed class OpentkService : IBrutalistRenderSurface, IDisposable
 
     private void OnLoad()
     {
-        Console.WriteLine("[OpentkService.OnLoad] Initializing OpenGL...");
         Console.Out.Flush();
 
         GL.ClearColor(0f, 0f, 0f, 1f);
@@ -243,7 +234,6 @@ public sealed class OpentkService : IBrutalistRenderSurface, IDisposable
         CreateTexture();
         EnsureTextureStorage(_framebufferWidth, _framebufferHeight);
 
-        Console.WriteLine("[OpentkService.OnLoad] OpenGL initialized");
         Console.Out.Flush();
     }
 
@@ -287,7 +277,6 @@ public sealed class OpentkService : IBrutalistRenderSurface, IDisposable
 
         SurfaceResized?.Invoke();
 
-        Console.WriteLine($"[OnResize] ClientSize: {Width}x{Height}, FramebufferSize: {_framebufferWidth}x{_framebufferHeight}, Scale: {DpiScaleX:0.##}x{DpiScaleY:0.##}, Surface recreated");
     }
 
     private void OnRenderFrame(FrameEventArgs args)
@@ -439,18 +428,15 @@ public sealed class OpentkService : IBrutalistRenderSurface, IDisposable
                 {
                     data.SaveTo(stream);
                 }
-                Console.WriteLine($"[SaveSurfaceToFile] Saved {filename}");
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"[SaveSurfaceToFile] Error: {ex.Message}");
         }
     }
 
     public void Dispose()
     {
-        Console.WriteLine("[OpentkService.Dispose] Cleaning up resources...");
 
         lock (_surfaceLock)
         {
@@ -480,7 +466,6 @@ public sealed class OpentkService : IBrutalistRenderSurface, IDisposable
         _window?.Close();
         _window?.Dispose();
 
-        Console.WriteLine("[OpentkService.Dispose] Cleanup complete");
     }
 
     private int _textureId;

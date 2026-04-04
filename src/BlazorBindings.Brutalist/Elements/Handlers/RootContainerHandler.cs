@@ -28,7 +28,6 @@ public class RootContainerHandler : IContainerElementHandler, INonPhysicalChild
 
     void IContainerElementHandler.AddChild(object child, int physicalSiblingIndex)
     {
-        Console.WriteLine("Handler-AddChild");
         var index = Math.Min(physicalSiblingIndex, Elements.Count);
         Elements.Insert(index, child);
         _taskCompletionSource?.TrySetResult(child);

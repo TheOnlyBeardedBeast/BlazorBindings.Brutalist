@@ -69,7 +69,6 @@ public sealed class Sdl3Service : IBrutalistRenderSurface, IDisposable
 
     public Sdl3Service(int width = 800, int height = 600, string title = "Blazor SDL3 App")
     {
-        Console.WriteLine("[Sdl3Service] Initialising SDL3...");
 
         if (!SDL.Init(SDL.InitFlags.Video))
         {
@@ -111,7 +110,6 @@ public sealed class Sdl3Service : IBrutalistRenderSurface, IDisposable
         _defaultCursor = SDL.CreateSystemCursor(SDL.SystemCursor.Default);
         _pointerCursor = SDL.CreateSystemCursor(SDL.SystemCursor.Pointer);
 
-        Console.WriteLine($"[Sdl3Service] Window created. Logical {Width}x{Height}, Framebuffer {_framebufferWidth}x{_framebufferHeight}, Scale {DpiScaleX:0.##}x{DpiScaleY:0.##}");
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -120,7 +118,6 @@ public sealed class Sdl3Service : IBrutalistRenderSurface, IDisposable
 
     public void Start()
     {
-        Console.WriteLine("[Sdl3Service.Start] Starting...");
         if (OperatingSystem.IsMacOS())
         {
             // macOS requires OpenGL and SDL to run on the main thread.
@@ -177,12 +174,10 @@ public sealed class Sdl3Service : IBrutalistRenderSurface, IDisposable
                 using var data = image.Encode(SKEncodedImageFormat.Png, 80);
                 using var stream = System.IO.File.OpenWrite(filename);
                 data.SaveTo(stream);
-                Console.WriteLine($"[Sdl3Service] Saved {filename}");
             }
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            Console.WriteLine($"[Sdl3Service] SaveSurfaceToFile error: {ex.Message}");
         }
     }
 
@@ -376,7 +371,6 @@ public sealed class Sdl3Service : IBrutalistRenderSurface, IDisposable
         EnsureTextureStorage(_framebufferWidth, _framebufferHeight);
         SurfaceResized?.Invoke();
 
-        Console.WriteLine($"[Sdl3Service.OnResize] Logical {Width}x{Height}, Framebuffer {_framebufferWidth}x{_framebufferHeight}, Scale {DpiScaleX:0.##}x{DpiScaleY:0.##}");
     }
 
     private void ApplyPendingResizeRequest()
@@ -416,7 +410,6 @@ public sealed class Sdl3Service : IBrutalistRenderSurface, IDisposable
         CreateTexture();
         EnsureTextureStorage(_framebufferWidth, _framebufferHeight);
 
-        Console.WriteLine("[Sdl3Service] OpenGL initialised.");
     }
 
     private void UploadSurfaceToTexture()
@@ -604,7 +597,6 @@ public sealed class Sdl3Service : IBrutalistRenderSurface, IDisposable
         _isDisposed = true;
         _running = false;
 
-        Console.WriteLine("[Sdl3Service] Disposing...");
 
         lock (_surfaceLock)
         {
@@ -624,7 +616,6 @@ public sealed class Sdl3Service : IBrutalistRenderSurface, IDisposable
 
         SDL.Quit();
 
-        Console.WriteLine("[Sdl3Service] Disposed.");
     }
 
     // ─────────────────────────────────────────────────────────────────────────

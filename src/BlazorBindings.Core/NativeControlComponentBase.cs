@@ -58,7 +58,6 @@ public abstract class NativeControlComponentBase : IComponent
     {
         try
         {
-            Console.WriteLine($"[ParameterBinding] Warning: {ex.GetType().Name}: {ex.Message}");
         }
         catch
         {

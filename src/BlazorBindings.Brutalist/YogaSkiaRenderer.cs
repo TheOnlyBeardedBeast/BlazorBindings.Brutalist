@@ -48,7 +48,6 @@ public class YogaSkiaRenderer : Renderer
                 adapter.ApplyEdits(updatedComponent.ComponentId, updatedComponent.Edits, renderBatch, adaptersWithPendingEdits);
             }
         }
-        // Console.WriteLine(adaptersWithPendingEdits.Count);
         foreach (var adapter in adaptersWithPendingEdits.OrderByDescending(a => a.DeepLevel))
             adapter.ApplyPendingEdits();
 
@@ -321,7 +320,6 @@ public class YogaSkiaRenderer : Renderer
         }
         catch
         {
-            try { Console.WriteLine($"[RenderError] {exception.GetType().Name}: {exception.Message}"); } catch { }
         }
 
         if (ReThrowRenderExceptions)

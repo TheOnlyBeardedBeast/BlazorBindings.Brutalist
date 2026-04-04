@@ -54,14 +54,10 @@ internal sealed class NativeComponentAdapter(
         RenderBatch batch,
         HashSet<NativeComponentAdapter> adaptersWithPendingEdits)
     {
-        Console.WriteLine(nameof(ApplyEdits));
         var referenceFrames = batch.ReferenceFrames.Array;
 
-        Console.WriteLine("EDIT");
-        Console.WriteLine(edits.Count);
         foreach (var edit in edits)
         {
-            Console.WriteLine(edit.Type);
             switch (edit.Type)
             {
                 case RenderTreeEditType.PrependFrame:
@@ -109,7 +105,6 @@ internal sealed class NativeComponentAdapter(
     // Therefore we store all add/remove actions, and apply them (rearranged) after other edits.
     public void ApplyPendingEdits()
     {
-        Console.WriteLine(nameof(ApplyPendingEdits));
         if (_pendingEdits == null)
             return;
 
@@ -134,7 +129,6 @@ internal sealed class NativeComponentAdapter(
             }
             else if (edit.Type == EditType.Add)
             {
-                Console.WriteLine("Adapter add chidl");
                 Renderer.ElementManager.AddChildElement(_targetElement, edit.Element._targetElement, edit.Index);
             }
         }
@@ -190,7 +184,6 @@ internal sealed class NativeComponentAdapter(
 
     private void AddPendingAddition(NativeComponentAdapter childToAdd, int index, HashSet<NativeComponentAdapter> adaptersWithPendingEdits)
     {
-        Console.WriteLine(nameof(AddPendingAddition));
         /* In cases when there are non-elements involved, the order of add operations could be wrong. E.g. 
         AppShell.razor
         <Shell>
@@ -232,7 +225,6 @@ internal sealed class NativeComponentAdapter(
 
     private void ApplyRemoveFrame(int siblingIndex, HashSet<NativeComponentAdapter> adaptersWithPendingEdits)
     {
-        Console.WriteLine(nameof(ApplyRemoveFrame));
         var childToRemove = Children[siblingIndex];
         RemoveChildElementAndDescendants(childToRemove, adaptersWithPendingEdits);
         Children.RemoveAt(siblingIndex);
@@ -240,7 +232,6 @@ internal sealed class NativeComponentAdapter(
 
     private void RemoveChildElementAndDescendants(NativeComponentAdapter childToRemove, HashSet<NativeComponentAdapter> adaptersWithPendingEdits)
     {
-        Console.WriteLine(nameof(RemoveChildElementAndDescendants));
 
         if (childToRemove?._targetElement != null)
         {
@@ -272,13 +263,11 @@ internal sealed class NativeComponentAdapter(
         HashSet<NativeComponentAdapter> adaptersWithPendingEdits)
     {
 
-        Console.WriteLine(nameof(ApplyPrependFrame));
         ref var frame = ref frames[frameIndex];
         switch (frame.FrameType)
         {
             case RenderTreeFrameType.Component:
                 {
-                    Console.WriteLine("Component");
                     var childAdapter = AddChildAdapter(siblingIndex, frame);
 
                     if (childAdapter._targetElement is not null)
@@ -292,7 +281,6 @@ internal sealed class NativeComponentAdapter(
                 }
             case RenderTreeFrameType.Markup:
                 {
-                    Console.WriteLine("Markup");
                     if (!string.IsNullOrWhiteSpace(frame.MarkupContent))
                     {
                         if (_targetElement is IHandleChildContentText handleChildContentText)
@@ -311,7 +299,6 @@ internal sealed class NativeComponentAdapter(
                 }
             case RenderTreeFrameType.Text:
                 {
-                    Console.WriteLine("Text");
                     if (_targetElement is IHandleChildContentText handleChildContentText)
                     {
                         handleChildContentText.HandleText(siblingIndex, frame.TextContent);
@@ -346,13 +333,10 @@ internal sealed class NativeComponentAdapter(
     /// </summary>
     private void AddElementAsChildElement(NativeComponentAdapter childAdapter, HashSet<NativeComponentAdapter> adaptersWithPendingEdits)
     {
-        Console.WriteLine(nameof(AddElementAsChildElement));
 
         if (childAdapter is null)
             return;
 
-        Console.WriteLine(childAdapter);
-        Console.WriteLine(childAdapter._targetElement);
 
         var elementIndex = PhysicalTarget.GetChildPhysicalIndex(childAdapter);
 
@@ -360,18 +344,15 @@ internal sealed class NativeComponentAdapter(
         // However, INonPhysicalChild elements are not real elements, but apply to parent instead, therefore should be added as child before any properties are set.
         if (childAdapter._targetElement is INonPhysicalChild)
         {
-            Console.WriteLine("Non physical");
             Renderer.ElementManager.AddChildElement(PhysicalTarget._targetElement, childAdapter._targetElement, elementIndex);
         }
         else
         {
-            Console.WriteLine("Physical");
             AddPendingAddition(childAdapter, elementIndex, adaptersWithPendingEdits);
         }
 
         if (PhysicalTarget._targetElement is INonPhysicalChild { ShouldAddChildrenToParent: true })
         {
-            Console.WriteLine("Should add");
             PhysicalTarget.Parent.AddElementAsChildElement(childAdapter, adaptersWithPendingEdits);
         }
     }
@@ -397,7 +378,6 @@ internal sealed class NativeComponentAdapter(
     /// </summary>
     private int GetChildPhysicalIndex(NativeComponentAdapter childAdapter)
     {
-        Console.WriteLine(nameof(GetChildPhysicalIndex));
         var index = 0;
         return FindChildPhysicalIndexRecursive(this, childAdapter, ref index) ? index : -1;
 
@@ -436,7 +416,6 @@ internal sealed class NativeComponentAdapter(
         int endIndexExcl,
         HashSet<NativeComponentAdapter> adaptersWithPendingEdits)
     {
-        Console.WriteLine(nameof(InsertFrameRange));
         var origChildIndex = childIndex;
         for (var frameIndex = startIndex; frameIndex < endIndexExcl; frameIndex++)
         {
@@ -453,7 +432,6 @@ internal sealed class NativeComponentAdapter(
 
     private static int CountDescendantFrames(RenderTreeFrame frame)
     {
-        Console.WriteLine(nameof(CountDescendantFrames));
         return frame.FrameType switch
         {
             // The following frame types have a subtree length. Other frames may use that memory slot
@@ -469,7 +447,6 @@ internal sealed class NativeComponentAdapter(
 
     private NativeComponentAdapter AddChildAdapter(int siblingIndex, RenderTreeFrame frame)
     {
-        Console.WriteLine(nameof(AddChildAdapter));
         var name = frame.FrameType is RenderTreeFrameType.Component
             ? $"For: '{frame.Component.GetType().FullName}'"
             : $"{frame.FrameType}, sib#={siblingIndex}";

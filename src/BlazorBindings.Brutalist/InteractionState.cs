@@ -18,7 +18,6 @@ public sealed class InteractionState
         }
 
         ActiveElement = element;
-        Console.WriteLine($"[InteractionState] ActiveElement changed: {FormatElement(element)}");
         ActiveElementChanged?.Invoke(element);
     }
 

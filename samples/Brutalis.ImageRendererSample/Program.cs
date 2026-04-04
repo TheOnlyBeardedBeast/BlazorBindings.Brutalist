@@ -27,4 +27,3 @@ await renderer.Dispatcher.InvokeAsync(async () =>
     await File.WriteAllBytesAsync(outputPath, imageBytes);
 });
 
-Console.WriteLine($"Image rendered to: {outputPath}");
