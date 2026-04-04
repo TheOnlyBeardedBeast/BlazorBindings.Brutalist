@@ -1,6 +1,6 @@
-# brutalist
+# Brutalist
 
-brutalist is a Blazor-style native UI runtime focused on flexible component composition, high-performance rendering, and modern cross-platform app hosting.
+Brutalist is a Blazor-style native UI runtime focused on flexible component composition, high-performance rendering, and modern cross-platform app hosting.
 
 It keeps the Razor authoring model you already know, while targeting a custom rendering and layout stack instead of HTML.
 
